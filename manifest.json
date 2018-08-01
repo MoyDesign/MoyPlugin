@@ -22,20 +22,11 @@
 
   "background": {
     "scripts": [
-      "bg.js"
+      "src/bg.js"
     ]
   },
 
   "permissions": [
-    "*://*/*",
-    "webRequest",
-    "webRequestBlocking",
-    "storage",
-    "tabs"
-  ],
-
-  "web_accessible_resources": [
-    "*.html",
-    "*.js"
+    "https://api.github.com/*"
   ]
 }
