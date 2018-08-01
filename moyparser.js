@@ -1,0 +1,498 @@
+'use strict'
+
+var BASIC_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'blockquote', 'br', 'i', 'em', 'b', 'strong', 
+    'ul', 'ol', 'li', 'dl', 'dt', 'dd', 'hr', 'code', 'del', 'pre', 's', 'u', 'small', 'sub', 'sup', 'img', 
+    'audio', 'video', 'source', 'a', 'table', 'th', 'tr', 'td', 'thead', 'tbody', 'tfoot', 'div', 'span', 'iframe',
+    'article', 'details', 'figcaption', 'figure', 'footer', 'header', 'main', 'mark', 'section', 'summary', 
+    'time', 'wbr', 'font', 'center', 'cite']
+
+var EXTENDED_TAG_SELECTOR = BASIC_TAGS.reduce(function(ret, t) {
+        return ret + ':not(' + t + ')'
+    }, '')
+
+var DEFAULT_RULES = [
+    {
+        name: 'TITLE',
+        match: 'title'
+    },
+
+    {
+        name: 'OPEN_GRAPH_TAGS',
+        match: {
+            include: 'meta[property^="og:"]',
+            outerNode: true
+        }
+    },
+
+    {
+        name: 'ICON_TAGS',
+        match: {
+            or: [
+                { include: 'link[rel="icon"]', outerNode: true },
+                { include: 'link[rel="shortcut icon"]', outerNode: true }
+            ]
+        }
+    }
+]
+checkRulesArray(DEFAULT_RULES)
+
+function ensurePresent(v, msg) {
+    if (!v) {
+        throw new Error(msg)
+    }
+}
+
+function ensurePresentOneOf(arr, msg) {
+    for (const v of arr) {
+        if (v) {
+            return
+        }
+    }
+    throw new Error(msg)
+}
+
+function ensureString(v, msg) {
+    if ('string' != typeof v) {
+        throw new Error(msg)
+    }
+}
+
+function ensureRegex(v, msg) {
+    try {
+        new RegExp(v)
+    } catch (e) {
+        throw new Error(msg)
+    }
+}
+
+function prepareArrayOfStrings(a, msg) {
+    if (a) {
+        if ('string' == typeof a) {
+            return [a]
+        } else if (Array.isArray(a)) {
+            a.forEach(function(s) {
+                ensureString(s, msg)
+            })
+            return a
+        } else {
+            throw new Error(msg)
+        }
+    } else {
+        return []
+    }
+}
+
+function parseBool(v, msg) {
+    if (undefined == v) {
+        return false
+    }
+    if ('string' == typeof v) {
+        if ('true' != v && 'false' != v) {
+            throw new Error(msg)
+        }
+        return 'true' == v
+    } else if ('number' == typeof v) {
+        if (1 != v & 0 != v) {
+            throw new Error(msg)
+        }
+        return 1 == v
+    } else if ('boolean' != typeof v) {
+        throw new Error(msg)
+    }
+    return v
+}
+
+function ensureArray(v, msg) {
+    if (!Array.isArray(v)) {
+        throw new Error(msg)
+    }
+}
+
+function removeStyles(jQuery, rawEl) {
+    const el = jQuery(rawEl)
+    el.removeAttr('style')
+    el.removeAttr('class')
+    el.removeAttr('width')
+    el.removeAttr('height')
+    el.children().each(function() {
+        removeStyles(jQuery, this)
+    })
+    return el
+}
+
+function checkAndUnifyMatchBlock(m, hasSubRules) {
+    if ('string' == typeof m) {
+        return {
+            include: m,
+            exclude: '',
+            outerNode: false,
+            removeInside: [],
+            keepBasicMarkup: hasSubRules
+        }
+    } else {
+        ensurePresent(m.include, 'Rule match must have include')
+        ensureString(m.include, 'Rule match include must be a string')
+        if (m.exclude) {
+            ensureString(m.exclude, 'Rule match exclude must be a string')
+        } else {
+            m.exclude = ''
+        }
+        if (m.addNextUntil) {
+            ensureString(m.addNextUntil, 'Rule match addNextUntil must be a string (if present)')
+            m.outerNode = false
+        } else {
+            m.outerNode = parseBool(m.outerNode, 'Allowed values for match.outerNode are true/false/1/0, but got ' + m.outerNode)
+        }
+        m.removeInside = prepareArrayOfStrings(m.removeInside, 'removeInside must be either a string or array of strings')
+        if (m.attribute) {
+            ensureString(m.attribute, 'Rule match attribute must be a string')
+        }
+        if (m.outerNode || hasSubRules) {
+            m.keepBasicMarkup = true
+        } else {
+            m.keepBasicMarkup = parseBool(m.keepBasicMarkup, 'Allowed values for match.keepBasicMarkup are true/false/1/0, but got ' + m.keepBasicMarkup)
+        }
+        return m
+    }
+}
+
+function checkAndUnifyRewriteBlock(rw, hasSubRules) {
+    if (hasSubRules) {
+        throw new Error('Rule with subrules can not contain rewrite block')
+    }
+    if ('string' == typeof rw) {
+        return {
+            output: rw,
+            find: '.*'
+        }
+    } else {
+        ensurePresent(rw.output, 'Rule rewrite must have output')
+        ensureString(rw.output, 'Rule rewrite output must be a string')
+        if (rw.find) {
+            try {
+                new RegExp(rw.find)
+            } catch (e) {
+                throw new Error('Rule rewrite find must be a valid RegExp string')
+            }
+        }
+        return rw
+    }
+}
+
+function checkAndUnifyRule(rule) {
+    ensurePresent(rule, 'No rule')
+    ensurePresent(rule.name, 'Rule must have a name')
+    ensureString(rule.name, 'Rule name must be a string')
+    ensurePresentOneOf([rule.match, rule.attribute, rule['value']],
+        'Rule match, rule attribute or rule value must be present')
+    if (rule.match) {
+        var hasSubRules = false
+        if (rule.rules) {
+            checkRulesArray(rule.rules)
+            hasSubRules = true
+        }
+        var m = rule.match
+        if ('string' == typeof m) {
+            rule.match = checkAndUnifyMatchBlock(m, hasSubRules)
+        } else if ('object' == typeof m) {
+            if (m.or) {
+                if (!Array.isArray(m.or)) {
+                    throw new Error('OR block must contain an array')
+                }
+                m.or.forEach(function(matchBlock, key) {
+                    m.or[key] = checkAndUnifyMatchBlock(matchBlock, hasSubRules)
+                })
+            } else {
+                checkAndUnifyMatchBlock(m, hasSubRules)
+            }
+        } else {
+            throw new Error('Rule match must be either a string or an object')
+        }
+    } else if (rule.attribute) {
+        ensureString(rule.attribute, 'Rule attribute must be a string')
+    } else { // rule.value
+        rule['value'] = prepareArrayOfStrings(rule['value'], 'Rule value must be a string or array of strings')
+    }
+    if (rule.rewrite) {
+        rule.rewrite = checkAndUnifyRewriteBlock(rule.rewrite, hasSubRules)
+    }
+}
+
+function checkRulesArray(rules) {
+    ensureArray(rules, 'Rules must be an array')
+    rules.forEach(checkAndUnifyRule)
+}
+
+function checkRedirect(redirect) {
+    ensurePresent(redirect.query, 'No query in redirect')
+    const sp = redirect.query.setParams
+    ensurePresent(sp, 'No setParams in redirect query')
+    if ('object' != typeof sp) {
+        throw new Error('setParams must be an object')
+    }
+}
+
+function checkAndUnifyAuthor(author) {
+    if ('string' === typeof author) {
+        return {name: author}
+    } else if ('object' === typeof author) {
+        ensureString(author.name, 'Parser author name must present and be a string')
+        return author
+    } else if ('undefined' === typeof author) {
+        return {name: 'Unknown author'}
+    } else {
+        throw new Error('Parser author must be a string or an object')
+    }
+}
+
+function checkAndUnifyInfo(info) {
+    const types = ['article', 'feed', 'custom']
+    const {name, type, domain, path, customType, testPages, author, suggestedRegex, description} = info
+    ensureString(name, 'Parser name must present and be a string')
+    ensureString(type, 'Parser type must present and be a string')
+    if (0 > types.indexOf(type)) {
+        throw new Error('Parser type must be one of these: ' + types.join(', '))
+    }
+    if ('custom' === type) {
+        ensureString(customType, 'If parser type is custom, customType must present and be a string')
+        if (0 <= types.indexOf(customType)) {
+            throw new Error('Parser customType must NOT be one of these: ' + types.join(', '))
+        }
+    }
+    ensureString(domain, 'Parser domain must present and be a string')
+    ensurePresentOneOf([path, suggestedRegex], 'Parser path or suggestedRegex must present')
+    if (path) {
+        ensureRegex(path, 'Parser path must be a valid regex')
+    }
+    if (suggestedRegex) {
+        ensureRegex(suggestedRegex, 'Parser suggestedRegex must be a valid regex')
+    }
+    info.testPages = prepareArrayOfStrings(testPages, 'Parser testPages must be a string or array of strings')
+    info.author = checkAndUnifyAuthor(author)
+    if (description) {
+        ensureString(description, 'Parser description must be a string')
+    } else {
+        info.description = ''
+    }
+}
+
+function checkParserDoc(parserDoc) {
+    ensurePresent(parserDoc, 'No parser')
+    ensurePresent(parserDoc.rules, 'No rules')
+    checkAndUnifyInfo(parserDoc.info)
+    checkRulesArray(parserDoc.rules)
+    if (parserDoc.redirect) {
+        checkRedirect(parserDoc.redirect)
+    }
+}
+
+function parseWithMatchBlock(jQuery, contextElem, matchBlock, hasSubRules) {
+    var nodes = jQuery(matchBlock.include, contextElem)
+    if ('' != matchBlock.exclude) {
+        nodes = nodes.not(matchBlock.exclude)
+    }
+    if (matchBlock.addNextUntil) {
+        nodes = nodes.map(function() {
+            return jQuery("<div></div>").append(jQuery(this).nextUntil(matchBlock.addNextUntil).addBack())
+        })
+    }
+    matchBlock.removeInside.forEach(function(selector) {
+        nodes.find(selector).remove()
+    })
+    if (hasSubRules) {
+        // skip the rest for a rule with sub-rules
+        return nodes.get()
+    }
+    nodes.find(EXTENDED_TAG_SELECTOR).remove()
+    var outerNode = matchBlock.outerNode
+    var attribute = matchBlock.attribute
+    var keepBasicMarkup = matchBlock.keepBasicMarkup
+    return nodes.map(function() {
+        if (attribute) {
+            return jQuery(this).attr(attribute)
+        } else if (keepBasicMarkup) {
+            var ret = removeStyles(jQuery, this)
+            return outerNode ? ret[0].outerHTML : ret.html()
+        } else {
+            return jQuery(this).text()
+        }
+    }).get()
+}
+
+function parseWithRule(jQuery, contextElem, rule) {
+    const hasSubRules = rule.rules
+    const match = rule.match
+    const attribute = rule.attribute
+    const value = rule.value
+    let ret = []
+    if (!match) {
+        if (rule.attribute) {
+            ret.push(jQuery(contextElem).attr(attribute) || '')
+        } else {
+            ret = ret.concat(rule['value'])
+        }
+    } else {
+        // match block
+        if (match.or) {
+            match.or.find(function(matchBlock) {
+                ret = parseWithMatchBlock(jQuery, contextElem, matchBlock, hasSubRules)
+                return ret.length != 0
+            })
+        } else {
+            ret = parseWithMatchBlock(jQuery, contextElem, match, hasSubRules)
+        }
+        if (rule.rules) {
+            ret = ret.map(function(elem) {
+                var mapped = { WHOLE: elem.outerHTML }
+                var children = parseWithRules(jQuery, elem, rule.rules).content
+                children.forEach(function(cv, ck) {
+                    mapped[ck] = cv
+                })
+                return mapped
+            })
+        }
+    }
+    if (rule.rewrite) {
+        ret = ret.map(function(elem) {
+            const result = new RegExp(rule.rewrite.find).exec(elem)
+            if (result) {
+                elem = rule.rewrite.output.replace(/\$(\d+)/g, (m, p1) => {
+                    const i = parseInt(p1, 10)
+                    return isNaN(i) ? '' : (result[i] || '')
+                })
+            }
+            return elem
+        })
+    }
+    return ret
+}
+
+function parseWithRules(jQuery, contextElem, rules) {
+    var ret = new Map()
+    rules.forEach(function(rule) {
+        ret.set(rule.name, parseWithRule(jQuery, contextElem, rule))
+    })
+    return {content: ret}
+}
+
+function JqParser(options) {
+    var parserDoc = options.content
+    checkParserDoc(parserDoc)
+    DEFAULT_RULES.forEach(function(defRule) {
+        if (!parserDoc.rules.find(function(r) { return r.name == defRule.name })) {
+            parserDoc.rules.push(defRule)
+        }
+    })
+    this.rules = parserDoc.rules
+    this.id = options.id
+    this.name = parserDoc.info.name
+    this.info = parserDoc.info
+    this.options = options
+    this.jQuery = options.jQuery || jQuery
+    this.document = options.document || document
+    this.redirect = parserDoc.redirect
+}
+
+JqParser.checkParserDoc = function(parserDoc) {
+    checkParserDoc(parserDoc)
+}
+
+JqParser.getRedirectUrl = function(url, parserOptions) {
+    const parserDoc = parserOptions.content
+    if (!parserDoc || !parserDoc.redirect) {
+        return undefined
+    }
+    try {
+        checkRedirect(parserDoc.redirect)
+    } catch (e) {
+        console.error('Invalid redirect spec', e)
+        return undefined
+    }
+    const Url = parserOptions.URL || URL
+    const parsedUrl = new Url(url)
+    const sp = parsedUrl.searchParams
+    let changed = false
+    for (const [param, val] of Object.entries(parserDoc.redirect.query.setParams)) {
+        if (sp.get(param) != val) {
+            sp.set(param, val)
+            changed = true
+        }
+    }
+    return changed ? parsedUrl.toString() : undefined
+}
+
+JqParser.create = function(options, cb) {
+    try {
+        cb(undefined, new JqParser(options))
+    } catch (e) {
+        cb(e)
+    }
+}
+
+JqParser.prototype.parse = function(cb) {
+    try {
+        cb(undefined, parseWithRules(this.jQuery, this.document, this.rules))
+    } catch (e) {
+        cb(e)
+    }
+}
+
+function getBaseUrl(document, rawUrl) {
+    var urlParser = document.createElement('a')
+    urlParser.href = rawUrl
+    return urlParser.protocol + '//' + urlParser.host
+}
+
+function customArrayToString() {
+    return this.join(' ')
+}
+
+function isObject(v) {
+    return v === Object(v)
+}
+
+function polishToken(token) {
+    if (Array.isArray(token)) {
+        token.toString = customArrayToString
+        token.forEach(polishToken)
+    }
+    if (isObject(token)) {
+        Object.values(token).forEach(polishToken)
+    }
+    return token
+}
+
+JqParser.parseAndRender = function(options, cb) {
+    JqParser.create(options, function(parserCreationErr, jqParser) {
+        if (parserCreationErr) {
+            return cb(parserCreationErr)
+        }
+        jqParser.parse(function(parseErr, jqParsedData) {
+            if (parseErr) {
+                return cb(parseErr)
+            }
+            if (!options.precompiledTemplate) {
+                return cb(undefined, undefined, jqParsedData)
+            }
+            try {
+                var compiledTemplateSpec
+                eval('compiledTemplateSpec = ' + options.precompiledTemplate)
+                var tokens = {
+                    BASE_URL: [options.baseUrl || getBaseUrl(options.document || document, options.url)],
+                    FULL_URL: [options.url]
+                }
+                for (var [name, value] of jqParsedData.content) {
+                    tokens[name] = polishToken(value)
+                }
+                const H = options.Handlebars || Handlebars
+                return cb(undefined, H.template(compiledTemplateSpec)(tokens), jqParsedData)
+            } catch (err) {
+                return cb(err)
+            }
+        })
+    })
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = JqParser
+}
