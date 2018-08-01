@@ -89,6 +89,7 @@ function MoyTemplate(options) {
     const {content: templateDoc, parseYaml} = options
     this.options = options
     this.info = parseTemplateInfo(templateDoc, parseYaml)
+    this.name = this.info.name
 }
 
 MoyTemplate.create = function(options, cb) {

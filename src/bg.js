@@ -22,21 +22,40 @@ SOFTWARE.
 
 'use strict'
 
-const PARSERS_URI = 'https://api.github.com/repos/MoyDesign/MoyData/contents/MoyParsers'
+const GITHUB_URI_PREFIX = 'https://api.github.com/repos/MoyDesign/MoyData/contents/'
+const PARSERS_DIR = 'MoyParsers'
+const TEMPLATES_DIR = 'MoyTemplates'
+
+async function fetchFile(githubFileInfo) {
+    const resp = await fetch(githubFileInfo.download_url)
+    return await resp.text()
+}
+
+async function fetchDir(dirname) {
+    const resp = await fetch(GITHUB_URI_PREFIX + dirname)
+    return await resp.json()
+}
 
 async function fetchParser(githubFileInfo) {
-    const resp = await fetch(githubFileInfo.download_url)
-    const text = await resp.text()
+    const text = await fetchFile(githubFileInfo)
     return new MoyParser({content: jsyaml.safeLoad(text)})
 }
 
-async function fetchParsers() {
-    const resp = await fetch(PARSERS_URI)
-    const dir = await resp.json()
-    const parsers = await Promise.all(dir.map(fetchParser))
-    return new Map(parsers.map(p => [p.name, p]))
+async function fetchTemplate(githubFileInfo) {
+    const text = await fetchFile(githubFileInfo)
+    return new MoyTemplate({content: text, parseYaml: jsyaml.safeLoad})
 }
 
-fetchParsers()
+async function fetchMap(dirname, fileFetcher) {
+    const dir = await fetchDir(dirname)
+    const entities = await Promise.all(dir.map(fileFetcher))
+    return new Map(entities.map(e => [e.name, e]))
+}
+
+fetchMap(PARSERS_DIR, fetchParser)
     .then(parsers => console.log('parsers', parsers))
-    .catch(e => console.log('error', e))
+    .catch(e => console.log('error while fetching parsers', e))
+
+fetchMap(TEMPLATES_DIR, fetchTemplate)
+    .then(templates => console.log('templates', templates))
+    .catch(e => console.log('error while fetching templates', e))
