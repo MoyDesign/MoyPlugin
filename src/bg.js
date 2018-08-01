@@ -25,6 +25,15 @@ SOFTWARE.
 const GITHUB_URI_PREFIX = 'https://api.github.com/repos/MoyDesign/MoyData/contents/'
 const PARSERS_DIR = 'MoyParsers'
 const TEMPLATES_DIR = 'MoyTemplates'
+const REFRESH_INTERVAL = 1000 * 60 * 60 // 1 hour
+const CHECK_INTERVAL = 1000 * 60 * 5 // 5 min
+
+let state = {
+    parsers: new Map(),
+    templates: new Map(),
+    lastRefresh: 0,
+    isRefreshing: false
+}
 
 async function fetchFile(githubFileInfo) {
     const resp = await fetch(githubFileInfo.download_url)
@@ -52,10 +61,29 @@ async function fetchMap(dirname, fileFetcher) {
     return new Map(entities.map(e => [e.name, e]))
 }
 
-fetchMap(PARSERS_DIR, fetchParser)
-    .then(parsers => console.log('parsers', parsers))
-    .catch(e => console.log('error while fetching parsers', e))
+function refreshData() {
+    if (!state.isRefreshing) {
+        state.isRefreshing = true
+        Promise.all([fetchMap(PARSERS_DIR, fetchParser), fetchMap(TEMPLATES_DIR, fetchTemplate)])
+            .then(res => {
+                state.parsers = res[0]
+                state.templates = res[1]
+            })
+            .catch(e => console.log('Failed to refresh data', e))
+            .finally(() => {
+                state.lastRefresh = Date.now()
+                state.isRefreshing = false
+                console.log('new state', state)
+            })
+    }
+}
 
-fetchMap(TEMPLATES_DIR, fetchTemplate)
-    .then(templates => console.log('templates', templates))
-    .catch(e => console.log('error while fetching templates', e))
+function periodicDataRefresh() {
+    if (REFRESH_INTERVAL < Date.now() - state.lastRefresh) {
+        refreshData()
+    }
+    setTimeout(periodicDataRefresh, CHECK_INTERVAL)
+}
+
+refreshData()
+periodicDataRefresh()
