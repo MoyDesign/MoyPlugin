@@ -22,11 +22,16 @@
 
   "background": {
     "scripts": [
+      "lib/jquery.slim.min.js",
+      "lib/js-yaml.min.js",
+      "src/moyparser.js",
+      "src/moytemplate.js",
       "src/bg.js"
     ]
   },
 
   "permissions": [
-    "https://api.github.com/*"
+    "https://api.github.com/*",
+    "https://raw.githubusercontent.com/*"
   ]
 }

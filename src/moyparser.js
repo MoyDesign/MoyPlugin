@@ -1,3 +1,25 @@
+/*
+Copyright (c) 2018 Dmitry Savenko <ds@dsavenko.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
 'use strict'
 
 var BASIC_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'blockquote', 'br', 'i', 'em', 'b', 'strong', 
@@ -278,7 +300,7 @@ function checkAndUnifyInfo(info) {
 
 function checkParserDoc(parserDoc) {
     ensurePresent(parserDoc, 'No parser')
-    ensurePresent(parserDoc.rules, 'No rules')
+    ensurePresent(parserDoc.rules, 'No rules in parser doc ' + parserDoc)
     checkAndUnifyInfo(parserDoc.info)
     checkRulesArray(parserDoc.rules)
     if (parserDoc.redirect) {
@@ -375,7 +397,7 @@ function parseWithRules(jQuery, contextElem, rules) {
     return {content: ret}
 }
 
-function JqParser(options) {
+function MoyParser(options) {
     var parserDoc = options.content
     checkParserDoc(parserDoc)
     DEFAULT_RULES.forEach(function(defRule) {
@@ -393,11 +415,11 @@ function JqParser(options) {
     this.redirect = parserDoc.redirect
 }
 
-JqParser.checkParserDoc = function(parserDoc) {
+MoyParser.checkParserDoc = function(parserDoc) {
     checkParserDoc(parserDoc)
 }
 
-JqParser.getRedirectUrl = function(url, parserOptions) {
+MoyParser.getRedirectUrl = function(url, parserOptions) {
     const parserDoc = parserOptions.content
     if (!parserDoc || !parserDoc.redirect) {
         return undefined
@@ -421,15 +443,15 @@ JqParser.getRedirectUrl = function(url, parserOptions) {
     return changed ? parsedUrl.toString() : undefined
 }
 
-JqParser.create = function(options, cb) {
+MoyParser.create = function(options, cb) {
     try {
-        cb(undefined, new JqParser(options))
+        cb(undefined, new MoyParser(options))
     } catch (e) {
         cb(e)
     }
 }
 
-JqParser.prototype.parse = function(cb) {
+MoyParser.prototype.parse = function(cb) {
     try {
         cb(undefined, parseWithRules(this.jQuery, this.document, this.rules))
     } catch (e) {
@@ -462,12 +484,12 @@ function polishToken(token) {
     return token
 }
 
-JqParser.parseAndRender = function(options, cb) {
-    JqParser.create(options, function(parserCreationErr, jqParser) {
+MoyParser.parseAndRender = function(options, cb) {
+    MoyParser.create(options, function(parserCreationErr, moyParser) {
         if (parserCreationErr) {
             return cb(parserCreationErr)
         }
-        jqParser.parse(function(parseErr, jqParsedData) {
+        moyParser.parse(function(parseErr, jqParsedData) {
             if (parseErr) {
                 return cb(parseErr)
             }
@@ -494,5 +516,5 @@ JqParser.parseAndRender = function(options, cb) {
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = JqParser
+    module.exports = MoyParser
 }
