@@ -20,19 +20,27 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+/*
+This software also includes parts of the Lodash library. Its license is here:
+https://github.com/lodash/lodash/blob/master/LICENSE
+*/
+
 'use strict'
 
-var BASIC_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'blockquote', 'br', 'i', 'em', 'b', 'strong', 
+const REGEXP_CHAR = /[\\^$.*+?()[\]{}|]/g
+const HAS_REGEXP_CHAR = new RegExp(REGEXP_CHAR.source)
+
+const BASIC_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'blockquote', 'br', 'i', 'em', 'b', 'strong', 
     'ul', 'ol', 'li', 'dl', 'dt', 'dd', 'hr', 'code', 'del', 'pre', 's', 'u', 'small', 'sub', 'sup', 'img', 
     'audio', 'video', 'source', 'a', 'table', 'th', 'tr', 'td', 'thead', 'tbody', 'tfoot', 'div', 'span', 'iframe',
     'article', 'details', 'figcaption', 'figure', 'footer', 'header', 'main', 'mark', 'section', 'summary', 
     'time', 'wbr', 'font', 'center', 'cite']
 
-var EXTENDED_TAG_SELECTOR = BASIC_TAGS.reduce(function(ret, t) {
+const EXTENDED_TAG_SELECTOR = BASIC_TAGS.reduce(function(ret, t) {
         return ret + ':not(' + t + ')'
     }, '')
 
-var DEFAULT_RULES = [
+const DEFAULT_RULES = [
     {
         name: 'TITLE',
         match: 'title'
@@ -267,6 +275,29 @@ function checkAndUnifyAuthor(author) {
     }
 }
 
+function escapeRegExp(s) {
+    return HAS_REGEXP_CHAR.test(s) ? s.replace(REGEXP_CHAR, '\\$&') : s
+}
+
+function getSuggestedRegex(domain, path) {
+    var ret = escapeRegExp(domain)
+    if (!ret.endsWith('/') && !path.startsWith('/')) {
+        ret += '/'
+    }
+    ret += path
+    ret = '^https?://[^/]*' + ret
+    if (-1 >= path.indexOf('\\?')) {
+        ret += '(\\?.*)?'
+    }
+    if (-1 >= path.indexOf('#')) {
+        ret += '(#.*)?'
+    }
+    if (!ret.endsWith('$')) {
+        ret += '$'
+    }
+    return ret
+}
+
 function checkAndUnifyInfo(info) {
     const types = ['article', 'feed', 'custom']
     const {name, type, domain, path, customType, testPages, author, suggestedRegex, description} = info
@@ -288,6 +319,8 @@ function checkAndUnifyInfo(info) {
     }
     if (suggestedRegex) {
         ensureRegex(suggestedRegex, 'Parser suggestedRegex must be a valid regex')
+    } else {
+        info.suggestedRegex = getSuggestedRegex(domain, path)
     }
     info.testPages = prepareArrayOfStrings(testPages, 'Parser testPages must be a string or array of strings')
     info.author = checkAndUnifyAuthor(author)
@@ -408,9 +441,11 @@ function MoyParser(options) {
     this.rules = parserDoc.rules
     this.id = options.id
     this.name = parserDoc.info.name
+    this.matchRegex = new RegExp(parserDoc.info.suggestedRegex)
     this.info = parserDoc.info
     this.options = options
     this.jQuery = options.jQuery || jQuery
+    this.URL = options.URL || URL
     this.document = options.document || document
     this.redirect = parserDoc.redirect
 }
@@ -419,36 +454,32 @@ MoyParser.checkParserDoc = function(parserDoc) {
     checkParserDoc(parserDoc)
 }
 
-MoyParser.getRedirectUrl = function(url, parserOptions) {
-    const parserDoc = parserOptions.content
-    if (!parserDoc || !parserDoc.redirect) {
-        return undefined
-    }
-    try {
-        checkRedirect(parserDoc.redirect)
-    } catch (e) {
-        console.error('Invalid redirect spec', e)
-        return undefined
-    }
-    const Url = parserOptions.URL || URL
-    const parsedUrl = new Url(url)
-    const sp = parsedUrl.searchParams
-    let changed = false
-    for (const [param, val] of Object.entries(parserDoc.redirect.query.setParams)) {
-        if (sp.get(param) != val) {
-            sp.set(param, val)
-            changed = true
-        }
-    }
-    return changed ? parsedUrl.toString() : undefined
-}
-
 MoyParser.create = function(options, cb) {
     try {
         cb(undefined, new MoyParser(options))
     } catch (e) {
         cb(e)
     }
+}
+
+MoyParser.prototype.getRedirectUrl = function(url) {
+    const parserDoc = this.options.content
+    if (parserDoc.redirect) {
+        const parsedUrl = new this.URL(url)
+        const sp = parsedUrl.searchParams
+        let changed = false
+        for (const [param, val] of Object.entries(parserDoc.redirect.query.setParams)) {
+            if (sp.get(param) != val) {
+                sp.set(param, val)
+                changed = true
+            }
+        }
+        return changed ? parsedUrl.toString() : undefined
+    }
+}
+
+MoyParser.prototype.isMatch = function(url) {
+    return this.matchRegex.test(url)
 }
 
 MoyParser.prototype.parse = function(cb) {

@@ -32,7 +32,11 @@
   },
 
   "permissions": [
-    "https://api.github.com/*",
-    "https://raw.githubusercontent.com/*"
+    "*://*/*",
+    "webRequest",
+    "webRequestBlocking",
+    "storage",
+    "tabs",
+    "clipboardWrite"
   ]
 }
