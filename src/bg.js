@@ -22,11 +22,15 @@ SOFTWARE.
 
 'use strict'
 
+const SECOND = 1000
+const MINUTE = 60 * SECOND
+const HOUR = 60 * MINUTE
+
 const GITHUB_URI_PREFIX = 'https://api.github.com/repos/MoyDesign/MoyData/contents/'
 const PARSERS_DIR = 'MoyParsers'
 const TEMPLATES_DIR = 'MoyTemplates'
-const REFRESH_INTERVAL = 1000 * 60 * 60 // 1 hour
-const CHECK_INTERVAL = 1000 * 60 * 5 // 5 min
+const REFRESH_INTERVAL = 5 * HOUR
+const CHECK_INTERVAL = 5 * MINUTE
 
 let state = {
     parsers: new Map(),
@@ -73,7 +77,6 @@ function refreshData() {
             .finally(() => {
                 state.lastRefresh = Date.now()
                 state.isRefreshing = false
-                console.log('new state', state)
             })
     }
 }
