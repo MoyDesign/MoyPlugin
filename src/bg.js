@@ -83,7 +83,6 @@ function refreshData() {
             .finally(() => {
                 state.lastRefresh = Date.now()
                 state.isRefreshing = false
-                console.log('refreshed state', state)
             })
     }
 }

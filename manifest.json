@@ -22,6 +22,7 @@
 
   "background": {
     "scripts": [
+      "lib/browser-polyfill.min.js",
       "lib/jquery.slim.min.js",
       "lib/js-yaml.min.js",
       "lib/handlebars.min.js",
