@@ -37,7 +37,8 @@ const PARSERS_DIR = 'MoyParsers'
 const TEMPLATES_DIR = 'MoyTemplates'
 const MEDIA_DOMAINS = ['youtube.com', 'youtu.be', 'ytimg.com', 'googlevideo.com', 'vimeo.com', 'vimeocdn.com', 
     'lj-toys.com', '9cache.com']
-const CONTENT_SCRIPT_FILES = ['/lib/handlebars.min.js', '/lib/jquery.slim.min.js', '/src/moyparser.js', '/src/cs.js']
+const AUX_CONTENT_SCRIPTS = ['/lib/handlebars.min.js', '/lib/jquery.slim.min.js', '/src/moyparser.js']
+const MAIN_CONTENT_SCRIPT = '/src/cs.js'
 
 const REFRESH_INTERVAL = 5 * HOUR
 const CHECK_INTERVAL = 5 * MINUTE
@@ -163,15 +164,15 @@ function quotedString(str) {
 }
 
 async function executeContentScripts(tabId, binding) {
+    await Promise.all(AUX_CONTENT_SCRIPTS.map(
+        file => browser.tabs.executeScript(tabId, {file: file, runAt: 'document_end'})))
     await browser.tabs.executeScript(tabId, {
         runAt: 'document_end',
         code: 
             'const compiledTemplateSpec = eval(' + binding.template.precompiled + ')\n' +
             'const parserOptions = JSON.parse(' + quotedString(JSON.stringify(binding.parser.options)) + ')\n'
     })
-    for (const f of CONTENT_SCRIPT_FILES) {
-        await browser.tabs.executeScript(tabId, {file: f, runAt: 'document_end'})
-    }
+    await browser.tabs.executeScript(tabId, {file: MAIN_CONTENT_SCRIPT, runAt: 'document_end'})
 }
 
 function onBeforeRequest(request) {
@@ -191,7 +192,7 @@ function onBeforeRequest(request) {
     }
 }
 
-function onResponseStarted(details) {
+function onCompleted(details) {
     const {url, tabId, type, method} = details
     if (-1 != tabId && url) {
         if ('GET' === method && 'main_frame' === type && !url.startsWith(MOY_TRY_URL_PREFIX)) {
@@ -220,6 +221,6 @@ refreshData()
 periodicDataRefresh()
 
 browser.webRequest.onBeforeRequest.addListener(onBeforeRequest, {urls: ['*://*/*']}, ['blocking'])
-browser.webRequest.onResponseStarted.addListener(onResponseStarted, {urls: ['*://*/*']})
+browser.webRequest.onCompleted.addListener(onCompleted, {urls: ['*://*/*']})
 browser.tabs.onRemoved.addListener(onTabRemoved)
 browser.tabs.onReplaced.addListener(onTabReplaced)
