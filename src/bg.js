@@ -20,6 +20,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+/*
+This software also includes parts of the Handlebars library. Its license is here:
+https://github.com/wycats/handlebars.js/blob/master/LICENSE
+*/
+
 'use strict'
 
 const SECOND = 1000
@@ -32,6 +37,7 @@ const PARSERS_DIR = 'MoyParsers'
 const TEMPLATES_DIR = 'MoyTemplates'
 const MEDIA_DOMAINS = ['youtube.com', 'youtu.be', 'ytimg.com', 'googlevideo.com', 'vimeo.com', 'vimeocdn.com', 
     'lj-toys.com', '9cache.com']
+const CONTENT_SCRIPT_FILES = ['/lib/handlebars.min.js', '/lib/jquery.slim.min.js', '/src/moyparser.js', '/src/cs.js']
 
 const REFRESH_INTERVAL = 5 * HOUR
 const CHECK_INTERVAL = 5 * MINUTE
@@ -146,6 +152,28 @@ function createCancelResponse(type) {
     return {redirectUrl: 'data:' + mime + ','}
 }
 
+function quotedString(str) {
+    return '"' + (str + '')
+        .replace(/\\/g, '\\\\')
+        .replace(/"/g, '\\"')
+        .replace(/\n/g, '\\n')
+        .replace(/\r/g, '\\r')
+        .replace(/\u2028/g, '\\u2028') // Per Ecma-262 7.3 + 7.8.4
+        .replace(/\u2029/g, '\\u2029') + '"'
+}
+
+async function executeContentScripts(tabId, binding) {
+    await browser.tabs.executeScript(tabId, {
+        runAt: 'document_end',
+        code: 
+            'const compiledTemplateSpec = eval(' + binding.template.precompiled + ')\n' +
+            'const parserOptions = JSON.parse(' + quotedString(JSON.stringify(binding.parser.options)) + ')\n'
+    })
+    for (const f of CONTENT_SCRIPT_FILES) {
+        await browser.tabs.executeScript(tabId, {file: f, runAt: 'document_end'})
+    }
+}
+
 function onBeforeRequest(request) {
     const {url, tabId, type, method} = request
     if (-1 != tabId && url) {
@@ -153,7 +181,9 @@ function onBeforeRequest(request) {
             const binding = registerTabBinding(tabId, url)
             if (binding) {
                 const redirectUrl = binding.parser.getRedirectUrl(url)
-                return redirectUrl ? {redirectUrl: redirectUrl} : undefined
+                if (redirectUrl) {
+                    return {redirectUrl: redirectUrl}
+                }
             }
         } else if ('image' !== type && 'imageset' !== type && state.tabBindings.has(tabId) && !isMedia(url)) {
             return createCancelResponse(type)
@@ -161,7 +191,35 @@ function onBeforeRequest(request) {
     }
 }
 
+function onResponseStarted(details) {
+    const {url, tabId, type, method} = details
+    if (-1 != tabId && url) {
+        if ('GET' === method && 'main_frame' === type && !url.startsWith(MOY_TRY_URL_PREFIX)) {
+            const binding = state.tabBindings.get(tabId)
+            if (binding) {
+                executeContentScripts(tabId, binding)
+                        .catch(e => console.log('Failed to execute content scripts', e))
+            }
+        }
+    }
+}
+
+function onTabRemoved(tabId, removeInfo) {
+    state.tabBindings.delete(tabId)
+}
+
+function onTabReplaced(addedTabId, removedTabId) {
+    const removedTabBanOptions = state.tabBindings.get(removedTabId)
+    if (removedTabBanOptions) {
+        state.tabBindings.set(addedTabId, removedTabBanOptions)
+    }
+    onTabRemoved(removedTabId, null)
+}
+
 refreshData()
 periodicDataRefresh()
 
 browser.webRequest.onBeforeRequest.addListener(onBeforeRequest, {urls: ['*://*/*']}, ['blocking'])
+browser.webRequest.onResponseStarted.addListener(onResponseStarted, {urls: ['*://*/*']})
+browser.tabs.onRemoved.addListener(onTabRemoved)
+browser.tabs.onReplaced.addListener(onTabReplaced)

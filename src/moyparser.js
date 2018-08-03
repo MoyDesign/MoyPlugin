@@ -483,10 +483,14 @@ MoyParser.prototype.isMatch = function(url) {
 }
 
 MoyParser.prototype.parse = function(cb) {
-    try {
-        cb(undefined, parseWithRules(this.jQuery, this.document, this.rules))
-    } catch (e) {
-        cb(e)
+    if (cb) {
+        try {
+            cb(undefined, parseWithRules(this.jQuery, this.document, this.rules))
+        } catch (e) {
+            cb(e)
+        }
+    } else {
+        return parseWithRules(this.jQuery, this.document, this.rules)
     }
 }
 
@@ -549,3 +553,6 @@ MoyParser.parseAndRender = function(options, cb) {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = MoyParser
 }
+
+// needed so that the script's result is 'structured clonable data'
+undefined
