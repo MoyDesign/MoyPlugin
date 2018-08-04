@@ -38,6 +38,11 @@
     "webRequestBlocking",
     "storage",
     "tabs",
-    "clipboardWrite"
+    "clipboardWrite",
+    "webNavigation"
+  ],
+
+  "web_accessible_resources": [
+    "src/frame.html"
   ]
 }

@@ -276,6 +276,7 @@ function checkAndUnifyAuthor(author) {
 }
 
 function escapeRegExp(s) {
+    // this function is taken from Lodash sources
     return HAS_REGEXP_CHAR.test(s) ? s.replace(REGEXP_CHAR, '\\$&') : s
 }
 

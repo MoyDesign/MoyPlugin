@@ -39,6 +39,8 @@ const MEDIA_DOMAINS = ['youtube.com', 'youtu.be', 'ytimg.com', 'googlevideo.com'
     'lj-toys.com', '9cache.com']
 const AUX_CONTENT_SCRIPTS = ['/lib/handlebars.min.js', '/lib/jquery.slim.min.js', '/src/moyparser.js']
 const MAIN_CONTENT_SCRIPT = '/src/cs.js'
+const FRAME_CONTENT_SCRIPT = '/src/frame.js'
+const POLYFILL_CONTENT_SCRIPT = '/lib/browser-polyfill.min.js'
 
 const REFRESH_INTERVAL = 5 * HOUR
 const CHECK_INTERVAL = 5 * MINUTE
@@ -154,6 +156,7 @@ function createCancelResponse(type) {
 }
 
 function quotedString(str) {
+    // this function is taken from Handlebars sources
     return '"' + (str + '')
         .replace(/\\/g, '\\\\')
         .replace(/"/g, '\\"')
@@ -163,16 +166,15 @@ function quotedString(str) {
         .replace(/\u2029/g, '\\u2029') + '"'
 }
 
-async function executeContentScripts(tabId, binding) {
+async function executeRenderingScripts(tabId, binding) {
     await Promise.all(AUX_CONTENT_SCRIPTS.map(
-        file => browser.tabs.executeScript(tabId, {file: file, runAt: 'document_end'})))
+        file => browser.tabs.executeScript(tabId, {file: file})))
     await browser.tabs.executeScript(tabId, {
-        runAt: 'document_end',
         code: 
             'const compiledTemplateSpec = eval(' + binding.template.precompiled + ')\n' +
             'const parserOptions = JSON.parse(' + quotedString(JSON.stringify(binding.parser.options)) + ')\n'
     })
-    await browser.tabs.executeScript(tabId, {file: MAIN_CONTENT_SCRIPT, runAt: 'document_end'})
+    await browser.tabs.executeScript(tabId, {file: MAIN_CONTENT_SCRIPT})
 }
 
 function onBeforeRequest(request) {
@@ -192,15 +194,13 @@ function onBeforeRequest(request) {
     }
 }
 
-function onCompleted(details) {
-    const {url, tabId, type, method} = details
-    if (-1 != tabId && url) {
-        if ('GET' === method && 'main_frame' === type && !url.startsWith(MOY_TRY_URL_PREFIX)) {
-            const binding = state.tabBindings.get(tabId)
-            if (binding) {
-                executeContentScripts(tabId, binding)
-                        .catch(e => console.log('Failed to execute content scripts', e))
-            }
+function onDOMContentLoaded(details) {
+    const {url, tabId, frameId} = details
+    if (-1 != tabId && 0 == frameId && url && !url.startsWith(MOY_TRY_URL_PREFIX)) {
+        const binding = state.tabBindings.get(tabId)
+        if (binding) {
+            executeRenderingScripts(tabId, binding)
+                    .catch(e => console.log('Failed to execute rendering content scripts', e))
         }
     }
 }
@@ -217,10 +217,37 @@ function onTabReplaced(addedTabId, removedTabId) {
     onTabRemoved(removedTabId, null)
 }
 
+async function injectFrame(tab) {
+    await browser.tabs.executeScript(tab.id, {file: POLYFILL_CONTENT_SCRIPT})
+    await browser.tabs.executeScript(tab.id, {file: FRAME_CONTENT_SCRIPT})
+}
+
+async function removeFrame(tab) {
+    await browser.tabs.sendMessage(tab.id, {type: 'unload'})
+}
+
+async function checkFrame(tab) {
+    const isFrame = await browser.tabs.sendMessage(tab.id, {type: 'check'})
+    if (!isFrame) {
+        throw new Error('No frame')
+    }
+}
+
+function onIconClicked(tab) {
+    if (-1 == tab.id) {
+        return
+    }
+    checkFrame(tab)
+        .then(() => removeFrame(tab).catch(e => console.log('Failed to remove frame', e)))
+        .catch(() => injectFrame(tab))
+        .catch(e => console.log('Failed to inject frame', e))
+}
+
 refreshData()
 periodicDataRefresh()
 
 browser.webRequest.onBeforeRequest.addListener(onBeforeRequest, {urls: ['*://*/*']}, ['blocking'])
-browser.webRequest.onCompleted.addListener(onCompleted, {urls: ['*://*/*']})
+browser.webNavigation.onDOMContentLoaded.addListener(onDOMContentLoaded, {url: [{urlMatches: '.*'}]})
 browser.tabs.onRemoved.addListener(onTabRemoved)
 browser.tabs.onReplaced.addListener(onTabReplaced)
+browser.browserAction.onClicked.addListener(onIconClicked)
