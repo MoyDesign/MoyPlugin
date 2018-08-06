@@ -41,8 +41,6 @@ const AUX_CONTENT_SCRIPTS = ['/lib/handlebars.min.js', '/lib/jquery.slim.min.js'
 const MAIN_CONTENT_SCRIPT = '/src/cs.js'
 const POLYFILL_CONTENT_SCRIPT = '/lib/browser-polyfill.min.js'
 const FRAME_INJECTOR_SCRIPT = '/src/frame-injector.js'
-const FRAME_CONTENT_SCRIPT = '/src/frame-cs.js'
-const FRAME_FULL_URL = browser.extension.getURL('src/frame.html')
 
 const REFRESH_INTERVAL = 5 * HOUR
 const CHECK_INTERVAL = 5 * MINUTE
@@ -204,10 +202,6 @@ function onDOMContentLoaded(details) {
             executeRenderingScripts(tabId, binding)
                     .catch(e => console.log('Failed to execute rendering content scripts', e))
         }
-    } else if (-1 != tabId && 0 != frameId && FRAME_FULL_URL == url) {
-        console.log('injecting frame script', tabId, frameId, url)
-        browser.tabs.executeScript(tabId, {file: FRAME_CONTENT_SCRIPT, frameId: frameId})
-            .catch(e => console.log('Failed to execute frame content script', e))
     }
 }
 

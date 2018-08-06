@@ -22,6 +22,5 @@ SOFTWARE.
 
 'use strict'
 
-!(function() {
-    document.getElementById('but').addEventListener('click', () => alert('hi'))
-})()
+document.getElementById('b1').innerText = browser.extension.getURL('src/frame.html')
+document.getElementById('but').addEventListener('click', () => alert('hi'))
