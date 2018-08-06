@@ -22,8 +22,35 @@ SOFTWARE.
 
 'use strict'
 
-function el(elId) {
-    return document.getElementById(elId)
+function el(elemId) {
+    return document.getElementById(elemId)
 }
 
-el('parserName').innerText = 'test'
+function clearStyle(elemId) {
+    el(elemId).style.cssText = ''
+}
+
+function showOtherLook(name) {
+    const look = document.createElement('a')
+    look.classList.add('look')
+    look.href='#'
+    look.innerText = name
+    el('otherLooks').appendChild(look)
+}
+
+async function load() {
+    const info = await browser.runtime.sendMessage({type: 'info'})
+    const {binding, otherLooks} = info
+    if (binding) {
+        clearStyle('moyed')
+        el('templateName').innerText = binding.templateName
+        if (otherLooks && 0 < otherLooks.length) {
+            clearStyle('otherLooks')
+            otherLooks.forEach(showOtherLook)
+        }
+    } else {
+        clearStyle('original')
+    }
+}
+
+load().catch(e => console.log('Failed to load Moy info', e))

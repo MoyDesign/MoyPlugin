@@ -5,10 +5,15 @@ body {
   color: #444;
   padding: 0 10px;
   background-color: #FFFFB8;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
 }
+
 a {
   color: #C20108;
 }
+
 button {
   color: #444;
   background-color: #fff;
@@ -21,24 +26,44 @@ button {
   cursor: pointer;
   line-height: normal;
 }
+
 button:hover {
   background-color: #C20108;
   color: #fff;
 }
+
 .moy-logo-block {
   display: inline-block;
   font-size: 24px;
+  margin-right: 15px;
 }
+
 .moy-logo-block a {
   display: flex;
   flex-flow: row nowrap;
   align-items: flex-start;
   text-decoration: none;
 }
+
 .moy-logo-block img {
   width: 36px;
   height: 36px;
 }
+
 .moy-logo-block strong {
   margin-left: 7.2px;
+}
+
+.flex {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+}
+
+#otherLooks {
+  margin-left: 10px;
+}
+
+.look {
+  margin-left: 10px;
 }

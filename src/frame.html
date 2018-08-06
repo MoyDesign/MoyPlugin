@@ -5,10 +5,27 @@
     <link rel="stylesheet" href="/src/frame.css">
   </head>
   <body>
-    <div class="moy-logo-block"><a href="https://moy.design" target="_blank">
-      <img src="/res/moy.svg"><strong>MOY</strong></a>
+    <div class='flex'>
+      <div class="moy-logo-block"><a href="https://moy.design" target="_blank">
+        <img src="/res/moy.svg"><strong>MOY</strong></a>
+      </div>
+
+      <div id='moyed' class='flex' style='display: none'>
+        <span>
+          <strong id='templateName'></strong>.
+        </span>
+        <span id='otherLooks' style='display: none'>
+          <span>Other looks:</span>
+        </span>
+      </div>
+
+      <div id='original' class='flex' style='display: none'>
+        <span>
+          No looks for this page. 
+          <a href='https://github.com/MoyDesign/MoyPlugin/blob/master/README.md#error' target='_blank'>What to do?</a>
+        </span>
+      </div>
     </div>
-    <div id="parserName"></div>
     <script src="/lib/browser-polyfill.min.js"></script>
     <script src="/src/frame.js"></script>
   </body>

@@ -247,9 +247,32 @@ function promise(ret) {
     return new Promise(resolve => resolve(ret))
 }
 
+function bindingInfo(binding) {
+    if (binding) {
+        const {parser, template} = binding
+        return {
+            parserName: parser.name,
+            templateName: template.name
+        }
+    }
+}
+
+function otherLooks(binding) {
+    if (binding) {
+        const {type, name} = binding.template.info
+        return Array.from(state.templates.values())
+            .filter(t => t.info.type === type && t.name !== name)
+            .map(t => t.name)
+    }
+}
+
 function onMessage(msg, sender) {
     if ('info' === msg.type) {
-        return promise({binding: state.tabBindings.get(sender.tab.id)})
+        const binding = state.tabBindings.get(sender.tab.id)
+        return promise({
+            binding: bindingInfo(binding),
+            otherLooks: otherLooks(binding)
+        })
     }
 }
 
