@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   version="1.1"
+   id="svg2"
+   viewBox="0 0 112 112"
+   height="31.608889mm"
+   width="31.608889mm">
+  <defs
+     id="defs4">
+    <linearGradient
+       id="linearGradient4547">
+      <stop
+         id="stop4549"
+         offset="0"
+         style="stop-color:#d20000;stop-opacity:1" />
+      <stop
+         id="stop4551"
+         offset="1"
+         style="stop-color:#ff7b7b;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient
+       spreadMethod="pad"
+       gradientUnits="userSpaceOnUse"
+       y2="257.36221"
+       x2="165"
+       y1="347.36221"
+       x1="180"
+       id="linearGradient4553"
+       xlink:href="#linearGradient4547" />
+  </defs>
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     transform="translate(-121,-243.86218)"
+     id="layer1">
+    <circle
+       r="56"
+       cy="299.86218"
+       cx="177"
+       id="path3336"
+       style="fill:url(#linearGradient4553);fill-opacity:1" />
+    <path
+       id="rect3340"
+       d="m 152.10527,262.3801 49.77778,0 c -0.0179,24.9111 0.0841,49.82215 -0.10522,74.73262 -16.55793,-0.0797 -33.11525,0.11077 -49.67256,0.23154 z"
+       style="fill:#ffffff" />
+    <rect
+       y="235.8622"
+       x="113"
+       height="128"
+       width="128"
+       id="rect3375"
+       style="fill:none" />
+    <g
+       transform="translate(-2.821428,2.5000264)"
+       id="g3387">
+      <rect
+         style="fill:#000000"
+         id="rect3379"
+         width="33.035713"
+         height="4.9999914"
+         x="163.30357"
+         y="-277.54068"
+         transform="scale(1,-1)" />
+      <use
+         x="0"
+         y="0"
+         xlink:href="#rect3379"
+         id="use3381"
+         transform="translate(-4.3667969e-6,14.880981)"
+         width="100%"
+         height="100%" />
+      <use
+         x="0"
+         y="0"
+         xlink:href="#use3381"
+         id="use3383"
+         transform="translate(0,14.880982)"
+         width="100%"
+         height="100%" />
+      <use
+         x="0"
+         y="0"
+         xlink:href="#use3383"
+         id="use3385"
+         transform="translate(0,14.880981)"
+         width="100%"
+         height="100%" />
+    </g>
+  </g>
+</svg>

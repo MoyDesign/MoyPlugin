@@ -1,0 +1,44 @@
+body {
+  line-height: 1.6;
+  font-size: 16px;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  color: #444;
+  padding: 0 10px;
+  background-color: #FFFFB8;
+}
+a {
+  color: #C20108;
+}
+button {
+  color: #444;
+  background-color: #fff;
+  border: 1px solid #444;
+  box-sizing: border-box;
+  border-radius: 0px;
+  padding: 5px 15px;
+  text-align: center;
+  display: inline-block;
+  cursor: pointer;
+  line-height: normal;
+}
+button:hover {
+  background-color: #C20108;
+  color: #fff;
+}
+.moy-logo-block {
+  display: inline-block;
+  font-size: 24px;
+}
+.moy-logo-block a {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: flex-start;
+  text-decoration: none;
+}
+.moy-logo-block img {
+  width: 36px;
+  height: 36px;
+}
+.moy-logo-block strong {
+  margin-left: 7.2px;
+}

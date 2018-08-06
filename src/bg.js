@@ -243,6 +243,16 @@ function onIconClicked(tab) {
         .catch(e => console.log('Failed to inject frame', e))
 }
 
+function promise(ret) {
+    return new Promise(resolve => resolve(ret))
+}
+
+function onMessage(msg, sender) {
+    if ('info' === msg.type) {
+        return promise({binding: state.tabBindings.get(sender.tab.id)})
+    }
+}
+
 refreshData()
 periodicDataRefresh()
 
@@ -251,3 +261,4 @@ browser.webNavigation.onDOMContentLoaded.addListener(onDOMContentLoaded, {url: [
 browser.tabs.onRemoved.addListener(onTabRemoved)
 browser.tabs.onReplaced.addListener(onTabReplaced)
 browser.browserAction.onClicked.addListener(onIconClicked)
+browser.runtime.onMessage.addListener(onMessage)

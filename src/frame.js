@@ -22,5 +22,8 @@ SOFTWARE.
 
 'use strict'
 
-document.getElementById('b1').innerText = browser.extension.getURL('src/frame.html')
-document.getElementById('but').addEventListener('click', () => alert('hi'))
+function el(elId) {
+    return document.getElementById(elId)
+}
+
+el('parserName').innerText = 'test'
