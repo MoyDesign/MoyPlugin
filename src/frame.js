@@ -30,12 +30,14 @@ function clearStyle(elemId) {
     el(elemId).style.cssText = ''
 }
 
-function showOtherLook(name) {
-    const look = document.createElement('a')
-    look.classList.add('look')
-    look.href='#'
+function addLook(name, isActive) {
+    const look = document.createElement('button')
     look.innerText = name
-    el('otherLooks').appendChild(look)
+    look.classList.add('look')
+    if (isActive) {
+        look.classList.add('active')
+    }
+    el('moyed').appendChild(look)
 }
 
 async function load() {
@@ -43,14 +45,23 @@ async function load() {
     const {binding, otherLooks} = info
     if (binding) {
         clearStyle('moyed')
-        el('templateName').innerText = binding.templateName
-        if (otherLooks && 0 < otherLooks.length) {
-            clearStyle('otherLooks')
-            otherLooks.forEach(showOtherLook)
+        addLook(binding.templateName, true)
+        if (otherLooks) {
+            otherLooks.forEach(l => addLook(l))
         }
     } else {
         clearStyle('original')
     }
 }
 
+function onClick(e) {
+    const target = e.target || e.srcElement
+    if (target === document.documentElement) {
+        browser.runtime.sendMessage({type: 'unload'})
+            .catch(e => console.log('Failed to unload frame', e))
+    }
+}
+
 load().catch(e => console.log('Failed to load Moy info', e))
+
+document.addEventListener('click', onClick)

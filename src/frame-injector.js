@@ -45,7 +45,7 @@ SOFTWARE.
     frame.style.border = 'none'
     frame.style.display = 'block'
     frame.style.width = '100%'
-    frame.style.height = '100px'
+    frame.style.height = '100%'
     frame.style.overflow = 'hidden'
     frame.style.position = 'fixed'
     frame.style.right = 0
@@ -53,7 +53,9 @@ SOFTWARE.
     frame.style.left = 'auto'
     frame.style.float = 'none'
     frame.style.zIndex = 2147483647
+    frame.style.background = 'transparent'
 
+    frame.setAttribute('allowtransparency', true)
     frame.src = browser.extension.getURL('src/frame.html')
 
     element = document.body.appendChild(frame)

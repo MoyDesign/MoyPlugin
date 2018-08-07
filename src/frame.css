@@ -1,13 +1,19 @@
 body {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.container {
+  margin: 6px;
+  padding: 10px;
+  border: 2px solid #C20108;
+  border-radius: 5px;
+  background-color: #fff;
   line-height: 1.6;
   font-size: 16px;
   font-family: "Helvetica Neue", Arial, sans-serif;
   color: #444;
-  padding: 0 10px;
-  background-color: #FFFFB8;
-  overflow-x: auto;
-  overflow-y: hidden;
-  white-space: nowrap;
+  display: inline-block;
+  float: right;
 }
 
 a {
@@ -25,11 +31,22 @@ button {
   display: inline-block;
   cursor: pointer;
   line-height: normal;
+  font-size: 16px;
 }
 
 button:hover {
   background-color: #C20108;
   color: #fff;
+}
+
+button.active {
+  background-color: #C20108;
+  color: #fff;
+  cursor: default;
+}
+
+button.look:not(:last-child) {
+  margin-bottom: 10px;
 }
 
 .moy-logo-block {
@@ -54,16 +71,14 @@ button:hover {
   margin-left: 7.2px;
 }
 
-.flex {
+.flex.row {
   display: flex;
   flex-flow: row nowrap;
   align-items: center;
+  justify-content: space-between;
 }
 
-#otherLooks {
-  margin-left: 10px;
-}
-
-.look {
-  margin-left: 10px;
+.flex.col {
+  display: flex;
+  flex-flow: column nowrap;
 }

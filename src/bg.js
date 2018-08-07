@@ -273,6 +273,9 @@ function onMessage(msg, sender) {
             binding: bindingInfo(binding),
             otherLooks: otherLooks(binding)
         })
+
+    } else if ('unload' === msg.type) {
+        return removeFrame(sender.tab)
     }
 }
 

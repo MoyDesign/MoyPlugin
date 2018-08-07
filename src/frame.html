@@ -5,21 +5,17 @@
     <link rel="stylesheet" href="/src/frame.css">
   </head>
   <body>
-    <div class='flex'>
-      <div class="moy-logo-block"><a href="https://moy.design" target="_blank">
-        <img src="/res/moy.svg"><strong>MOY</strong></a>
+    <div class='container'>
+      <div class='flex row' style='justify-content: space-around; margin-bottom: 10px;'>
+        <div class="moy-logo-block"><a href="https://moy.design" target="_blank">
+          <img src="/res/moy.svg"><strong>MOY</strong></a>
+        </div>
       </div>
 
-      <div id='moyed' class='flex' style='display: none'>
-        <span>
-          <strong id='templateName'></strong>.
-        </span>
-        <span id='otherLooks' style='display: none'>
-          <span>Other looks:</span>
-        </span>
+      <div id='moyed' class='flex col' style='display: none'>
       </div>
 
-      <div id='original' class='flex' style='display: none'>
+      <div id='original' style='display: none'>
         <span>
           No looks for this page. 
           <a href='https://github.com/MoyDesign/MoyPlugin/blob/master/README.md#if-the-plugin-doesnt-work' target='_blank'>What to do?</a>
