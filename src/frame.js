@@ -22,42 +22,53 @@ SOFTWARE.
 
 'use strict'
 
+const HELP_TEXT = 'Get help'
+const HELP_URL = 'https://github.com/MoyDesign/MoyPlugin/blob/master/README.md#get-help'
+
 function el(elemId) {
     return document.getElementById(elemId)
-}
-
-function clearStyle(elemId) {
-    el(elemId).style.cssText = ''
 }
 
 async function switchLook(name) {
     await browser.runtime.sendMessage({type: 'switch_look', name: name})
 }
 
-function addLook(name, isActive) {
+function addLook(name, ...classes) {
     const look = document.createElement('button')
     look.innerText = name
     look.classList.add('look')
-    if (isActive) {
-        look.classList.add('active')
-    } else {
+    look.classList.add(...classes)
+    if (!classes.includes('active')) {
         look.onclick = () => switchLook(name).catch(e => console.log('Failed to load look', e))
     }
     el('moyed').appendChild(look)
 }
 
+function addLink(text, href) {
+    const link = document.createElement('a')
+    link.href = href
+    link.target = '_blank'
+    link.innerText = text
+    link.style.display = 'block'
+    link.style.textAlign = 'center'
+    el('moyed').appendChild(link)
+}
+
 async function load() {
     const info = await browser.runtime.sendMessage({type: 'info'})
-    const {binding, otherLooks} = info
+    const {binding, otherLooks, originalLookName} = info
     if (binding) {
-        clearStyle('moyed')
-        addLook(binding.templateName, true)
-        if (otherLooks) {
-            otherLooks.forEach(l => addLook(l))
-        }
+        addLook(binding.templateName, 'active')
     } else {
-        clearStyle('original')
+        addLook(originalLookName, 'active', 'original')
     }
+    if (otherLooks) {
+        otherLooks.forEach(l => addLook(l))
+    }
+    if (binding) {
+        addLook(originalLookName, 'original')
+    }
+    addLink(HELP_TEXT, HELP_URL)
 }
 
 function onDocumentClick(e) {

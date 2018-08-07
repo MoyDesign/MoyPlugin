@@ -49,6 +49,10 @@ button.look:not(:last-child) {
   margin-bottom: 10px;
 }
 
+button.look + button.look.original, button.look.original + button.look {
+  margin-top: 10px;
+}
+
 .moy-logo-block {
   display: inline-block;
   font-size: 24px;

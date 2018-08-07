@@ -37,6 +37,8 @@ const PARSERS_DIR = 'MoyParsers'
 const TEMPLATES_DIR = 'MoyTemplates'
 const MEDIA_DOMAINS = ['youtube.com', 'youtu.be', 'ytimg.com', 'googlevideo.com', 'vimeo.com', 'vimeocdn.com', 
     'lj-toys.com', '9cache.com']
+const ORIGINAL_LOOK_NAME = 'Original look'
+
 const AUX_CONTENT_SCRIPTS = ['/lib/handlebars.min.js', '/lib/jquery.slim.min.js', '/src/moyparser.js']
 const MAIN_CONTENT_SCRIPT = '/src/cs.js'
 const POLYFILL_CONTENT_SCRIPT = '/lib/browser-polyfill.min.js'
@@ -89,16 +91,23 @@ async function fetchTemplate(githubFileInfo) {
     return new MoyTemplate({content: text, parseYaml: jsyaml.safeLoad})
 }
 
-async function fetchMap(dirname, fileFetcher) {
+async function fetchMap(dirname, fileFetcher, entityFilter) {
     const dir = await fetchDir(dirname)
-    const entities = await Promise.all(dir.map(fileFetcher))
+    let entities = await Promise.all(dir.map(fileFetcher))
+    if (entityFilter) {
+        entities = entities.filter(entityFilter)
+    }
     return new Map(entities.map(e => [e.name, e]))
+}
+
+function templateFilter(template) {
+    return ORIGINAL_LOOK_NAME !== template.name.trim()
 }
 
 function refreshData() {
     if (!state.isRefreshing) {
         state.isRefreshing = true
-        Promise.all([fetchMap(PARSERS_DIR, fetchParser), fetchMap(TEMPLATES_DIR, fetchTemplate)])
+        Promise.all([fetchMap(PARSERS_DIR, fetchParser), fetchMap(TEMPLATES_DIR, fetchTemplate, templateFilter)])
             .then(res => {
                 state.parsers = res[0]
                 state.templates = res[1]
@@ -133,7 +142,11 @@ function findParser(url) {
 function findTemplate(parser) {
     if (parser) {
         const name = settings.typeTemplates.get(parser.info.type)
-        return name ? state.templates.get(name) : findValue(state.templates, t => t.info.type === parser.info.type)
+        if (name) {
+            return ORIGINAL_LOOK_NAME !== name ? state.templates.get(name) : undefined
+        } else {
+            return findValue(state.templates, t => t.info.type === parser.info.type)
+        }
     }
 }
 
@@ -275,31 +288,60 @@ function bindingInfo(binding) {
     }
 }
 
-function otherLooks(binding) {
-    if (binding) {
-        const {type, name} = binding.template.info
-        return Array.from(state.templates.values())
-            .filter(t => t.info.type === type && t.name !== name)
-            .map(t => t.name)
-    }
+function otherLooks(type, name) {
+    return Array.from(state.templates.values())
+        .filter(t => t.info.type === type && t.name !== name)
+        .map(t => t.name)
 }
 
 async function switchLook(tab, templateName) {
-    const template = state.templates.get(templateName)
-    if (template) {
-        settings.typeTemplates.set(template.info.type, templateName)
-        await saveSettings()
-        await browser.tabs.reload(tab.id)
+    let type
+    if (ORIGINAL_LOOK_NAME === templateName) {
+        const binding = state.tabBindings.get(tab.id)
+        if (binding) {
+            type = binding.parser.info.type
+        } else {
+            throw new Error('Binding not found')
+        }
+    } else {
+        const template = state.templates.get(templateName)
+        if (template) {
+            type = template.info.type
+        } else {
+            throw new Error('Template not found: ' + templateName)
+        }
+    }
+    if (!type) {
+        // should not happen
+        throw new Error('Failed to determine type')
+    }
+    settings.typeTemplates.set(type, templateName)
+    await saveSettings()
+    await browser.tabs.reload(tab.id)
+}
+
+function getTabInfo(tab) {
+    const binding = state.tabBindings.get(tab.id)
+    let looks = undefined
+    if (binding) {
+        const {type, name} = binding.template.info
+        looks = otherLooks(type, name)
+    } else {
+        const parser = findParser(tab.url)
+        if (parser) {
+            looks = otherLooks(parser.info.type, ORIGINAL_LOOK_NAME)
+        }
+    }
+    return {
+        binding: bindingInfo(binding),
+        otherLooks: looks,
+        originalLookName: ORIGINAL_LOOK_NAME
     }
 }
 
 function onMessage(msg, sender) {
     if ('info' === msg.type) {
-        const binding = state.tabBindings.get(sender.tab.id)
-        return promise({
-            binding: bindingInfo(binding),
-            otherLooks: otherLooks(binding)
-        })
+        return promise(getTabInfo(sender.tab))
 
     } else if ('unload' === msg.type) {
         return removeFrame(sender.tab)
