@@ -30,12 +30,18 @@ function clearStyle(elemId) {
     el(elemId).style.cssText = ''
 }
 
+async function switchLook(name) {
+    await browser.runtime.sendMessage({type: 'switch_look', name: name})
+}
+
 function addLook(name, isActive) {
     const look = document.createElement('button')
     look.innerText = name
     look.classList.add('look')
     if (isActive) {
         look.classList.add('active')
+    } else {
+        look.onclick = () => switchLook(name).catch(e => console.log('Failed to load look', e))
     }
     el('moyed').appendChild(look)
 }
@@ -54,7 +60,7 @@ async function load() {
     }
 }
 
-function onClick(e) {
+function onDocumentClick(e) {
     const target = e.target || e.srcElement
     if (target === document.documentElement) {
         browser.runtime.sendMessage({type: 'unload'})
@@ -64,4 +70,4 @@ function onClick(e) {
 
 load().catch(e => console.log('Failed to load Moy info', e))
 
-document.addEventListener('click', onClick)
+document.addEventListener('click', onDocumentClick)

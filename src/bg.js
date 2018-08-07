@@ -45,6 +45,10 @@ const FRAME_INJECTOR_SCRIPT = '/src/frame-injector.js'
 const REFRESH_INTERVAL = 5 * HOUR
 const CHECK_INTERVAL = 5 * MINUTE
 
+let settings = {
+    typeTemplates: new Map()
+}
+
 let state = {
     parsers: new Map(),
     templates: new Map(),
@@ -52,6 +56,17 @@ let state = {
     isRefreshing: false,
 
     tabBindings: new Map()
+}
+
+async function saveSettings() {
+    await browser.storage.local.set({typeTemplates: [...settings.typeTemplates]})
+}
+
+async function loadSettings() {
+    const tmp = await browser.storage.local.get()
+    if (tmp) {
+        settings.typeTemplates = new Map(tmp.typeTemplates || [])
+    }
 }
 
 async function fetchFile(githubFileInfo) {
@@ -116,7 +131,10 @@ function findParser(url) {
 }
 
 function findTemplate(parser) {
-    return parser && findValue(state.templates, t => t.info.type === parser.info.type)
+    if (parser) {
+        const name = settings.typeTemplates.get(parser.info.type)
+        return name ? state.templates.get(name) : findValue(state.templates, t => t.info.type === parser.info.type)
+    }
 }
 
 function registerTabBinding(tabId, url) {
@@ -266,6 +284,15 @@ function otherLooks(binding) {
     }
 }
 
+async function switchLook(tab, templateName) {
+    const template = state.templates.get(templateName)
+    if (template) {
+        settings.typeTemplates.set(template.info.type, templateName)
+        await saveSettings()
+        await browser.tabs.reload(tab.id)
+    }
+}
+
 function onMessage(msg, sender) {
     if ('info' === msg.type) {
         const binding = state.tabBindings.get(sender.tab.id)
@@ -276,9 +303,13 @@ function onMessage(msg, sender) {
 
     } else if ('unload' === msg.type) {
         return removeFrame(sender.tab)
+
+    } else if ('switch_look' === msg.type) {
+        return switchLook(sender.tab, msg.name)
     }
 }
 
+loadSettings().catch(e => console.log('Failed to load settings', e))
 refreshData()
 periodicDataRefresh()
 
