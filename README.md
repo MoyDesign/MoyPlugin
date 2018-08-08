@@ -13,4 +13,4 @@ If the plugin shows no looks for a page or renders a page incorrectly, and you d
 
 * if you have a Github account, you can [file an issue](https://github.com/MoyDesign/MoyPlugin/issues);
 * if you don't have a Github account, you can send email to the [mailing list](https://groups.io/g/moy);
-* you can approach [me](https://github.com/dsavenko) directly.
+* you can contact [me](https://github.com/dsavenko) personally.

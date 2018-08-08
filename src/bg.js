@@ -48,7 +48,8 @@ const REFRESH_INTERVAL = 5 * HOUR
 const CHECK_INTERVAL = 5 * MINUTE
 
 let settings = {
-    typeTemplates: new Map()
+    typeTemplates: new Map(),
+    parserTemplates: new Map()
 }
 
 let state = {
@@ -61,13 +62,17 @@ let state = {
 }
 
 async function saveSettings() {
-    await browser.storage.local.set({typeTemplates: [...settings.typeTemplates]})
+    await browser.storage.local.set({
+        typeTemplates: [...settings.typeTemplates],
+        parserTemplates: [...settings.parserTemplates]
+    })
 }
 
 async function loadSettings() {
     const tmp = await browser.storage.local.get()
     if (tmp) {
         settings.typeTemplates = new Map(tmp.typeTemplates || [])
+        settings.parserTemplates = new Map(tmp.parserTemplates || [])
     }
 }
 
@@ -141,7 +146,10 @@ function findParser(url) {
 
 function findTemplate(parser) {
     if (parser) {
-        const name = settings.typeTemplates.get(parser.info.type)
+        let name = settings.parserTemplates.get(parser.name)
+        if (!name) {
+            name = settings.typeTemplates.get(parser.info.type)
+        }
         if (name) {
             return ORIGINAL_LOOK_NAME !== name ? state.templates.get(name) : undefined
         } else {
@@ -163,7 +171,6 @@ function registerTabBinding(tabId, url) {
 }
 
 function isMedia(url) {
-    // TODO: should be user-configurable
     if (url) {
         const hostname = new URL(url).hostname
         return MEDIA_DOMAINS.find(d => hostname.endsWith(d))
@@ -295,27 +302,27 @@ function otherLooks(type, name) {
 }
 
 async function switchLook(tab, templateName) {
-    let type
     if (ORIGINAL_LOOK_NAME === templateName) {
         const binding = state.tabBindings.get(tab.id)
         if (binding) {
-            type = binding.parser.info.type
+            // we set the original look for each parser separately
+            settings.parserTemplates.set(binding.parser.name, ORIGINAL_LOOK_NAME)
         } else {
             throw new Error('Binding not found')
         }
     } else {
         const template = state.templates.get(templateName)
         if (template) {
-            type = template.info.type
+            // we set a custom look for the whole type at once
+            settings.typeTemplates.set(template.info.type, templateName)
+            const parser = findParser(tab.url)
+            if (parser) {
+                settings.parserTemplates.delete(parser.name)
+            }
         } else {
             throw new Error('Template not found: ' + templateName)
         }
     }
-    if (!type) {
-        // should not happen
-        throw new Error('Failed to determine type')
-    }
-    settings.typeTemplates.set(type, templateName)
     await saveSettings()
     await browser.tabs.reload(tab.id)
 }
