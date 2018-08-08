@@ -194,7 +194,7 @@ function createCancelResponse(type) {
 }
 
 function quotedString(str) {
-    // this function is taken from Handlebars sources
+    // this function is taken from Handlebars
     return '"' + (str + '')
         .replace(/\\/g, '\\\\')
         .replace(/"/g, '\\"')
