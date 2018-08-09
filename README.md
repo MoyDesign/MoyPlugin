@@ -16,7 +16,7 @@ The plugin's available for Chrome and Firefox (*including Firefox for Android*):
 
 If everything's OK, you should see something like this next time you click the plugin's icon:
 
-![Plugin pop-up](https://raw.githubusercontent.com/MoyDesign/MoyDocs/master/docs/plugin-popup.png)
+<img src="https://raw.githubusercontent.com/MoyDesign/MoyDocs/master/docs/plugin-popup.png" height="300">
 
 These buttons represent alternative looks available for this page. For some pages, only `Original look` is available. When you press a button, the page will be reloaded with the chosen look, and your choice is remembered. I.e. next time you load this (or similar) page, it'll be shown with the selected look.
 
