@@ -26,7 +26,7 @@ Here are some pages you can test the plugin on. Just visit them with the plugin 
 1. Medium articles, like [this one](https://medium.com/the-mission/if-you-only-read-a-few-books-in-2018-read-these-89d03fc149c6).
 1. LiveJournal blog posts, like [this one](https://shakko-kitsune.livejournal.com/1281232.html), or [feeds](https://shakko-kitsune.livejournal.com/feed/) (in Russian), including your own feed.
 
-...and more. The number of supported websites grows. If the plugin doesn't support your favourite website yet, just [ask about it](#get-help).
+...and more. The number of supported websites is growing. If the plugin doesn't support your favourite website yet, just [ask about it](#get-help).
 
 ## Get help
 
