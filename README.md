@@ -12,7 +12,7 @@
 The plugin's available for Chrome and Firefox (*including Firefox for Android*):
 
 * [Install for Chrome](https://chrome.google.com/webstore/detail/moydesign/kgepfphemgiidklhpnfoobmoieiglgon)
-* [Install for Firefox and Firefox for Android](https://moy.design/extension/firefox)
+* [Install for Firefox (desktop and Android)](https://moy.design/extension/firefox)
 
 If everything's OK, you should see something like this next time you click the plugin's icon:
 
