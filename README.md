@@ -20,11 +20,13 @@ If everything's OK, you should see something like this next time you click the p
 
 These buttons represent alternative looks available for this page. For some pages, only `Original look` is available. When you press a button, the page will be reloaded with the chosen look, and your choice is remembered. I.e. next time you load this (or similar) page, it'll be shown with the selected look.
 
-## Current state
+Here are some pages you can test the plugin on. Just visit them with the plugin installed.
 
-A development of the 2.0 version of the plugin is in progress right now. Many changes are coming. Once 2.0 is ready, the announcement will be made. For now, you can try version 1.4.0. Details are on the [website](https://moy.design). 
+1. HuffPost articles, like [this one](https://www.huffingtonpost.com/entry/cottage-cheese-nutritional-benefits-yogurt_us_5b3a33cbe4b0f3c221a2e136) or [that one](https://www.huffingtonpost.com/entry/best-fast-food-fried-chicken_us_5b328c43e4b0cb56051ccaab?section=us_taste).
+1. Medium articles, like [this one](https://medium.com/the-mission/if-you-only-read-a-few-books-in-2018-read-these-89d03fc149c6).
+1. LiveJournal blog posts, like [this one](https://shakko-kitsune.livejournal.com/1281232.html), or [feeds](https://shakko-kitsune.livejournal.com/feed/) (in Russian), including your own feed.
 
-To receive updates, please subscribe to the [mailing list](https://groups.io/g/moy).
+...and more. The number of supported websites grows. If the plugin doesn't support your favourite website yet, just [ask about it](#get-help).
 
 ## Get help
 
@@ -34,6 +36,12 @@ If something is unclear or seems buggy (e.g. the plugin shows no looks for a pag
 * ask for help in the [mailing list](https://groups.io/g/moy)
 * ask for help directly: [info@moy.design](mailto:info@moy.design)
 * contact [me](https://github.com/dsavenko) personally.
+
+## Current state
+
+A development of the 2.0 version of the plugin is in progress right now. Many changes are coming. Once 2.0 is ready, the announcement will be made. For now, you can try version 1.4.0. Details are on the [website](https://moy.design). 
+
+To receive updates, please subscribe to the [mailing list](https://groups.io/g/moy).
 
 ## In-depth documentation
 
