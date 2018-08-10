@@ -10,14 +10,15 @@
 
   "name": "Moy.Design",
   "description": "Change the looks of your favourite websites. You can either make your own looks or use ones other people made.",
-  "version": "2.0.0",
+  "version": "2.0.1",
 
   "icons": {
     "128": "res/icon.png"
   },
 
-  "browser_action": {
-    "default_icon": "res/icon.png"
+  "page_action": {
+    "default_icon": "res/icon.png",
+    "show_matches": ["*://*/*"]
   },
 
   "background": {
@@ -38,7 +39,6 @@
     "webRequestBlocking",
     "storage",
     "tabs",
-    "clipboardWrite",
     "webNavigation"
   ],
 

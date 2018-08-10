@@ -366,5 +366,5 @@ browser.webRequest.onBeforeRequest.addListener(onBeforeRequest, {urls: ['*://*/*
 browser.webNavigation.onDOMContentLoaded.addListener(onDOMContentLoaded, {url: [{urlMatches: '.*'}]})
 browser.tabs.onRemoved.addListener(onTabRemoved)
 browser.tabs.onReplaced.addListener(onTabReplaced)
-browser.browserAction.onClicked.addListener(onIconClicked)
+browser.pageAction.onClicked.addListener(onIconClicked)
 browser.runtime.onMessage.addListener(onMessage)
