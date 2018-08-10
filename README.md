@@ -47,13 +47,3 @@ To receive updates, please subscribe to the [mailing list](https://groups.io/g/m
 
 Detailed documentation about the plugin, including how to create your own looks, is available [here](https://github.com/MoyDesign/MoyDocs/blob/master/README.md#moydesign-documentation).
 
-## How to help the project
-
-You can help the project in a number of ways:
-
-1. Use the plugin, tell your friends about it :)
-1. If you have a GitHub account, star this repo, as well as [MoyData](https://github.com/MoyDesign/MoyData) and [MoyDocs](https://github.com/MoyDesign/MoyDocs) repos. This will help to spread the word.
-1. If you find a bug or have a feature request, file an issue in any of the three repos.
-1. Contribute to [MoyData](https://github.com/MoyDesign/MoyData), providing new looks.
-1. Contribute to [MoyDocs](https://github.com/MoyDesign/MoyData).
-1. Contribute to the plugin itself.
