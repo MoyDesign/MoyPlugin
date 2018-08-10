@@ -37,12 +37,6 @@ If something is unclear or seems buggy (e.g. the plugin shows no looks for a pag
 * ask for help directly: [info@moy.design](mailto:info@moy.design)
 * contact [me](https://github.com/dsavenko) personally.
 
-## Current state
-
-A development of the 2.0 version of the plugin is in progress right now. Many changes are coming. Once 2.0 is ready, the announcement will be made. For now, you can try version 1.4.0. Details are on the [website](https://moy.design). 
-
-To receive updates, please subscribe to the [mailing list](https://groups.io/g/moy).
-
 ## In-depth documentation
 
 Detailed documentation about the plugin, including how to create your own looks, is available [here](https://github.com/MoyDesign/MoyDocs/blob/master/README.md#moydesign-documentation).
