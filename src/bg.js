@@ -38,6 +38,8 @@ const TEMPLATES_DIR = 'MoyTemplates'
 const MEDIA_DOMAINS = ['youtube.com', 'youtu.be', 'ytimg.com', 'googlevideo.com', 'vimeo.com', 'vimeocdn.com', 
     'lj-toys.com', '9cache.com']
 const ORIGINAL_LOOK_NAME = 'Original look'
+const PAGE_ACTION_URL_PROTOCOLS = ['http:', 'https:']
+const PAGE_ACTION_BANNED_URLS = ['https://addons.mozilla.org', 'https://chrome.google.com/webstore']
 
 const AUX_CONTENT_SCRIPTS = ['/lib/handlebars.min.js', '/lib/jquery.slim.min.js', '/src/moyparser.js']
 const MAIN_CONTENT_SCRIPT = '/src/cs.js'
@@ -243,6 +245,25 @@ function onDOMContentLoaded(details) {
     }
 }
 
+function switchPageAction(tabId, url) {
+    if (0 > tabId && !url) {
+        return
+    }
+    const isProtocolOk = PAGE_ACTION_URL_PROTOCOLS.includes(new URL(url).protocol)
+    const isUrlBanned = PAGE_ACTION_BANNED_URLS.find(u => url.startsWith(u))
+    if (isProtocolOk && !isUrlBanned) {
+        browser.pageAction.show(tabId)
+    } else {
+        browser.pageAction.hide(tabId)
+    }
+}
+
+function onTabUpdated(tabId, changeInfo) {
+    if (changeInfo.url) {
+        switchPageAction(tabId, changeInfo.url)
+    }
+}
+
 function onTabRemoved(tabId, removeInfo) {
     state.tabBindings.delete(tabId)
 }
@@ -253,6 +274,11 @@ function onTabReplaced(addedTabId, removedTabId) {
         state.tabBindings.set(addedTabId, removedTabBanOptions)
     }
     onTabRemoved(removedTabId, null)
+}
+
+async function initTabs() {
+    const tabs = await browser.tabs.query({})
+    tabs.forEach(tab => switchPageAction(tab.id, tab.url))
 }
 
 async function injectFrame(tab) {
@@ -364,7 +390,11 @@ periodicDataRefresh()
 
 browser.webRequest.onBeforeRequest.addListener(onBeforeRequest, {urls: ['*://*/*']}, ['blocking'])
 browser.webNavigation.onDOMContentLoaded.addListener(onDOMContentLoaded, {url: [{urlMatches: '.*'}]})
-browser.tabs.onRemoved.addListener(onTabRemoved)
-browser.tabs.onReplaced.addListener(onTabReplaced)
 browser.pageAction.onClicked.addListener(onIconClicked)
 browser.runtime.onMessage.addListener(onMessage)
+
+browser.tabs.onRemoved.addListener(onTabRemoved)
+browser.tabs.onReplaced.addListener(onTabReplaced)
+browser.tabs.onUpdated.addListener(onTabUpdated)
+
+initTabs().catch(e => console.log('Failed to init tabs', e))
