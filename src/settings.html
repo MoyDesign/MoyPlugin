@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/src/style.css">
+    <title>Settings - Moy.Design</title>
+    <style>
+      body {
+        background-color: #fff;
+        font-family: "Helvetica Neue", Arial, sans-serif;
+      }
+      .container {
+        margin: 6px auto;
+        padding: 10px;
+        border: 2px solid #C20108;
+        border-radius: 5px;
+        background-color: #fff;
+        line-height: 1.6;
+        font-size: 16px;
+        font-family: "Helvetica Neue", Arial, sans-serif;
+        color: #444;
+        max-width: 800px;
+      }
+      div + div {
+        margin-top: 10px;
+      }
+      textarea, input {
+        display: block;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class='container'>
+      <div class='flex row' style='justify-content: space-around; margin-bottom: 10px;'>
+        <div class="moy-logo-block"><a href="https://moy.design" target="_blank">
+          <img src="/res/moy.svg"><strong>MOY</strong></a>
+        </div>
+      </div>
+      <div>
+        <label for='github'>GitHub account:</label>
+        <div class='hint'>
+          GitHub account to look for data. Change at your own risk. <a href='#'>Restore default</a>.
+        </div>
+        <input type='text' id='github' value='MoyDesign'>
+      </div>
+      <div>
+        <label for='parser'>Draft parser:</label>
+        <div class='hint'>
+          Locally stored parser.
+          <a href='https://github.com/MoyDesign/MoyDocs/blob/master/docs/parser.md#parser' target='_blank'>Syntax help</a>
+        </div>
+        <textarea id='parser' rows='10'></textarea>
+      </div>
+      <div>
+        <label for='parser'>Draft template:</label>
+        <div class='hint'>
+          Locally stored template.
+          <a href='https://github.com/MoyDesign/MoyDocs/blob/master/docs/template.md#template' target='_blank'>Syntax help</a>
+        </div>
+        <textarea id='parser' rows='10'></textarea>
+      </div>
+    </div>
+    <script src="/lib/browser-polyfill.min.js"></script>
+  </body>
+</html>

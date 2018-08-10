@@ -1,21 +1,3 @@
-body {
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-.container {
-  margin: 6px;
-  padding: 10px;
-  border: 2px solid #C20108;
-  border-radius: 5px;
-  background-color: #fff;
-  line-height: 1.6;
-  font-size: 16px;
-  font-family: "Helvetica Neue", Arial, sans-serif;
-  color: #444;
-  display: inline-block;
-  float: right;
-}
-
 a {
   color: #C20108;
 }
@@ -85,4 +67,20 @@ button.look + button.look.original, button.look.original + button.look {
 .flex.col {
   display: flex;
   flex-flow: column nowrap;
+}
+
+.hint {
+  font-size: 12.8px;
+  color: #777;
+}
+
+input[type='text'] {
+  font-size: 16px;
+  padding: 4.8px;
+  color: #444;
+  background-color: #fff;
+  border: 1px solid #444;
+  box-sizing: border-box;
+  border-radius: 0px;
+  font-family: "Helvetica Neue", Arial, sans-serif;
 }

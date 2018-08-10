@@ -22,9 +22,6 @@ SOFTWARE.
 
 'use strict'
 
-const HELP_TEXT = 'Get help'
-const HELP_URL = 'https://github.com/MoyDesign/MoyPlugin/blob/master/README.md#get-help'
-
 function el(elemId) {
     return document.getElementById(elemId)
 }
@@ -44,16 +41,6 @@ function addLook(name, ...classes) {
     el('moyed').appendChild(look)
 }
 
-function addLink(text, href) {
-    const link = document.createElement('a')
-    link.href = href
-    link.target = '_blank'
-    link.innerText = text
-    link.style.display = 'block'
-    link.style.textAlign = 'center'
-    el('moyed').appendChild(link)
-}
-
 async function load() {
     const info = await browser.runtime.sendMessage({type: 'info'})
     const {binding, otherLooks, originalLookName} = info
@@ -68,7 +55,6 @@ async function load() {
     if (binding) {
         addLook(originalLookName, 'original')
     }
-    addLink(HELP_TEXT, HELP_URL)
 }
 
 function onDocumentClick(e) {
@@ -82,3 +68,4 @@ function onDocumentClick(e) {
 load().catch(e => console.log('Failed to load Moy info', e))
 
 document.addEventListener('click', onDocumentClick)
+el('settings').href = browser.extension.getURL('src/settings.html')
