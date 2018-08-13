@@ -20,7 +20,7 @@
         font-size: 16px;
         font-family: "Helvetica Neue", Arial, sans-serif;
         color: #444;
-        max-width: 800px;
+        max-width: 600px;
       }
       .row + .row {
         margin-top: 10px;
@@ -42,11 +42,17 @@
         </div>
       </div>
       <div class='row'>
-        <label for='github'>GitHub account:</label>
+        <label for='githubUserInput'>GitHub account:</label>
         <div class='hint'>
-          GitHub account to look for data. Change at your own risk. <a href='#'>Restore default</a>.
+          GitHub account to look for data. Change at your own risk.
+          <a id='resetGithubUserBut' href='#'>Restore default</a>.
         </div>
-        <input type='text' id='github' value='MoyDesign'>
+        <input type='text' id='githubUserInput' value=''>
+      </div>
+      <div id='failDiv' class='fail row' style='display: none'></div>
+      <div id='successDiv' class='success row' style='display: none'>Success</div>
+      <div class='row clearfix'>
+        <button id='saveBut' class='to-right'>Save</button>
       </div>
     </div>
     <script src="/lib/browser-polyfill.min.js"></script>

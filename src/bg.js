@@ -32,7 +32,6 @@ const MINUTE = 60 * SECOND
 const HOUR = 60 * MINUTE
 
 const MOY_TRY_URL_PREFIX = 'https://moy.design/try'
-const GITHUB_URI_PREFIX = 'https://api.github.com/repos/MoyDesign/MoyData/contents/'
 const PARSERS_DIR = 'MoyParsers'
 const TEMPLATES_DIR = 'MoyTemplates'
 const MEDIA_DOMAINS = ['youtube.com', 'youtu.be', 'ytimg.com', 'googlevideo.com', 'vimeo.com', 'vimeocdn.com', 
@@ -49,16 +48,21 @@ const FRAME_INJECTOR_SCRIPT = '/src/frame-injector.js'
 const REFRESH_INTERVAL = 5 * HOUR
 const CHECK_INTERVAL = 5 * MINUTE
 
+const DEFAULT_SETTINGS = {
+    githubUser: 'MoyDesign'
+}
+
 let settings = {
     typeTemplates: new Map(),
-    parserTemplates: new Map()
+    parserTemplates: new Map(),
+    githubUser: DEFAULT_SETTINGS.githubUser
 }
 
 let state = {
     parsers: new Map(),
     templates: new Map(),
     lastRefresh: 0,
-    isRefreshing: false,
+    refreshDataPromise: null,
 
     tabBindings: new Map()
 }
@@ -66,7 +70,8 @@ let state = {
 async function saveSettings() {
     await browser.storage.local.set({
         typeTemplates: [...settings.typeTemplates],
-        parserTemplates: [...settings.parserTemplates]
+        parserTemplates: [...settings.parserTemplates],
+        githubUser: settings.githubUser || DEFAULT_SETTINGS.githubUser
     })
 }
 
@@ -75,16 +80,29 @@ async function loadSettings() {
     if (tmp) {
         settings.typeTemplates = new Map(tmp.typeTemplates || [])
         settings.parserTemplates = new Map(tmp.parserTemplates || [])
+        settings.githubUser = tmp.githubUser || DEFAULT_SETTINGS.githubUser
     }
 }
 
 async function fetchFile(githubFileInfo) {
     const resp = await fetch(githubFileInfo.download_url)
+    if (!resp.ok) {
+        throw new Error(`${resp.statusText}: ${githubFileInfo.download_url}`)
+    }
     return await resp.text()
 }
 
+function githubDirUrl(dirname) {
+    const user = settings.githubUser || DEFAULT_SETTINGS.githubUser
+    return `https://api.github.com/repos/${user}/MoyData/contents/${dirname}`
+}
+
 async function fetchDir(dirname) {
-    const resp = await fetch(GITHUB_URI_PREFIX + dirname)
+    const url = githubDirUrl(dirname)
+    const resp = await fetch(url)
+    if (!resp.ok) {
+        throw new Error(`${resp.statusText}: ${url}`)
+    }
     return await resp.json()
 }
 
@@ -111,19 +129,31 @@ function templateFilter(template) {
     return ORIGINAL_LOOK_NAME !== template.name.trim()
 }
 
-function refreshData() {
-    if (!state.isRefreshing) {
-        state.isRefreshing = true
-        Promise.all([fetchMap(PARSERS_DIR, fetchParser), fetchMap(TEMPLATES_DIR, fetchTemplate, templateFilter)])
+async function refreshData() {
+    if (!state.refreshDataPromise) {
+        state.refreshDataPromise = Promise.all([
+                fetchMap(PARSERS_DIR, fetchParser),
+                fetchMap(TEMPLATES_DIR, fetchTemplate, templateFilter)
+            ])
             .then(res => {
                 state.parsers = res[0]
                 state.templates = res[1]
             })
-            .catch(e => console.log('Failed to refresh data', e))
+            .catch(e => {
+                console.log('Failed to refresh data', e)
+                throw e
+            })
             .finally(() => {
                 state.lastRefresh = Date.now()
-                state.isRefreshing = false
+                state.refreshDataPromise = null
             })
+    }
+    return state.refreshDataPromise
+}
+
+function stopDataRefreshing(reason) {
+    if (state.refreshDataPromise) {
+        Promise.reject(state.refreshDataPromise)
     }
 }
 
@@ -372,6 +402,23 @@ function getTabInfo(tab) {
     }
 }
 
+async function setSettings(newSettings) {
+    const {githubUser} = newSettings
+    if (githubUser && githubUser !== settings.githubUser) {
+        stopDataRefreshing()
+        settings.githubUser = githubUser
+        try {
+            await refreshData()
+        } catch(e) {
+            await loadSettings()
+            throw e;
+        }
+        await saveSettings()
+    } else {
+        return promise({})
+    }
+}
+
 function onMessage(msg, sender) {
     if ('info' === msg.type) {
         return promise(getTabInfo(sender.tab))
@@ -381,12 +428,21 @@ function onMessage(msg, sender) {
 
     } else if ('switch_look' === msg.type) {
         return switchLook(sender.tab, msg.name)
+
+    } else if ('get_settings' === msg.type) {
+        return promise({settings: settings, defaultSettings: DEFAULT_SETTINGS})
+
+    } else if ('set_settings' === msg.type) {
+        return setSettings(msg.settings)
     }
 }
 
-loadSettings().catch(e => console.log('Failed to load settings', e))
-refreshData()
-periodicDataRefresh()
+loadSettings()
+    .catch(e => console.log('Failed to load settings', e))
+    .finally(() => {
+        refreshData()
+        periodicDataRefresh()
+    })
 
 browser.webRequest.onBeforeRequest.addListener(onBeforeRequest, {urls: ['*://*/*']}, ['blocking'])
 browser.webNavigation.onDOMContentLoaded.addListener(onDOMContentLoaded, {url: [{urlMatches: '.*'}]})

@@ -22,3 +22,51 @@ SOFTWARE.
 
 'use strict'
 
+function hideResultDivs() {
+    failDiv.style.display = 'none'
+    successDiv.style.display = 'none'
+}
+
+function dirty() {
+    hideResultDivs()
+    saveBut.innerText = 'Save*'
+}
+
+async function save() {
+    const newSettings = {
+        githubUser: githubUserInput.value
+    }
+    hideResultDivs()
+    saveBut.onclick = undefined
+    saveBut.style.cursor = 'progress'
+    saveBut.innerText = 'Saving...'
+    try {
+        await browser.runtime.sendMessage({type: 'set_settings', settings: newSettings})
+        successDiv.style.display = 'block'
+    } catch (e) {
+        failDiv.style.display = 'block'
+        failDiv.innerText = '' + e
+    } finally {
+        saveBut.onclick = onSaveClick
+        saveBut.style.cursor = 'default'
+        saveBut.innerText = 'Save'
+    }
+}
+
+function onSaveClick() {
+    save().catch(e => console.log('Failed to save settings', e))
+}
+
+async function load() {
+    const {settings, defaultSettings} = await browser.runtime.sendMessage({type: 'get_settings'})
+    githubUserInput.value = settings.githubUser
+    resetGithubUserBut.onclick = () => {
+        githubUserInput.value = defaultSettings.githubUser
+        onSaveClick()
+        return false
+    }
+}
+
+load().catch(e => console.log('Failed to load settings', e))
+saveBut.onclick = onSaveClick
+githubUserInput.oninput = dirty

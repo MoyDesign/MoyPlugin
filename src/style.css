@@ -84,3 +84,21 @@ input[type='text'] {
   border-radius: 0px;
   font-family: "Helvetica Neue", Arial, sans-serif;
 }
+
+.clearfix::after {
+  content: "";
+  clear: both;
+  display: table;
+}
+
+.to-right {
+  float: right;
+}
+
+.fail {
+  color: #FF4136;
+}
+
+.success {
+  color: #2ECC40;
+}
