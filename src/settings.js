@@ -22,5 +22,3 @@ SOFTWARE.
 
 'use strict'
 
-CodeMirror.fromTextArea(document.getElementById('parser'), {mode: 'yaml'})
-CodeMirror.fromTextArea(document.getElementById('template'), {mode: {name: 'handlebars', base: 'text/html'}})

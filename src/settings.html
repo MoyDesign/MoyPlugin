@@ -25,17 +25,12 @@
       .row + .row {
         margin-top: 10px;
       }
-      textarea, input {
+      input {
         display: block;
         width: 100%;
         font-size: 16px;
         font-family: "Courier New", "Courier", monospace;
         box-sizing: border-box;
-      }
-      .CodeMirror {
-        font-size: 13px;
-        line-height: 1;
-        border: 1px solid #444;
       }
     </style>
   </head>
@@ -53,30 +48,8 @@
         </div>
         <input type='text' id='github' value='MoyDesign'>
       </div>
-      <div class='row'>
-        <label for='parser'>Draft parser:</label>
-        <div class='hint'>
-          Locally stored parser.
-          <a href='https://github.com/MoyDesign/MoyDocs/blob/master/docs/parser.md#parser' target='_blank'>Help</a>.
-        </div>
-        <textarea id='parser' rows='10'></textarea>
-      </div>
-      <div class='row'>
-        <label for='parser'>Draft template:</label>
-        <div class='hint'>
-          Locally stored template.
-          <a href='https://github.com/MoyDesign/MoyDocs/blob/master/docs/template.md#template' target='_blank'>Help</a>.
-        </div>
-        <textarea id='template' rows='10'></textarea>
-      </div>
     </div>
     <script src="/lib/browser-polyfill.min.js"></script>
-    <script src="/lib/codemirror/lib/codemirror.js"></script>
-    <script src="/lib/codemirror/addon/mode/simple.js"></script>
-    <script src="/lib/codemirror/addon/mode/multiplex.js"></script>
-    <script src="/lib/codemirror/mode/xml.js"></script>
-    <script src="/lib/codemirror/mode/yaml.js"></script>
-    <script src="/lib/codemirror/mode/handlebars.js"></script>
     <script src="/src/settings.js"></script>
   </body>
 </html>
