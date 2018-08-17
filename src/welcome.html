@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Welcome - Moy.Design</title>
+    <link rel="stylesheet" href="/src/style.css">
+    <link rel="stylesheet" href="/lib/codemirror/lib/codemirror.css">
+    <style>
+      body {
+        background-color: #fff;
+        font-family: "Helvetica Neue", Arial, sans-serif;
+      }
+      .container {
+        margin: 6px auto;
+        padding: 10px;
+        border: 2px solid #C20108;
+        border-radius: 5px;
+        background-color: #fff;
+        line-height: 1.6;
+        font-size: 16px;
+        font-family: "Helvetica Neue", Arial, sans-serif;
+        color: #444;
+        max-width: 600px;
+      }
+      .row + .row {
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class='container'>
+      <div class='flex row' style='justify-content: space-around; margin-bottom: 10px;'>
+        <div class="moy-logo-block"><a href="https://moy.design" target="_blank">
+          <img src="/res/moy.svg"><strong>MOY</strong></a>
+        </div>
+      </div>
+      <div class='row'>
+        <h2>Welcome to Moy.Design!</h2>
+        <p>We don't like the Web as it is today. It's heavy, overloaded with scripts, images, counters, social buttons, web fonts, etc. It's slow. It's clumsy. We think it can be better.</p>
+        <p>This plugin changes the appearance of websites. It serves a number of purposes:</p>
+        <ul>
+          <li>Provide a way to see information from different websites in a unified way, which is customizable by end users.</li>
+          <li>Make web pages lighter, with less scripts, images, styling and other heavy and often unnecessary stuff.</li>
+          <li>Make web pages more readable, human-friendly, eye-friendly.</li>
+          <li>Make web pages mobile-friendly.</li>
+        </ul>
+      </div>
+      <div class='row'>
+        <h2>Check it</h2>
+        <p>Below are examples of how Moy transforms web pages. You just</p>
+        <ol>
+          <li>Click a link.</li>
+          <li>Enjoy an alternative look of the page.</li>
+          <li><i>(Optional)</i> Click the plugin icon (<img src='/res/icon.png' style='height: 1em'>) near the address bar to check other looks.</li>
+        </ol>
+      </div>
+      <div id='looksDiv' class='row'></div>
+      <div class='row'>
+        <h2>Additional information</h2>
+        <p>Want to learn more about how Moy works and how to create your own looks? Detailed documentation is <a href='https://github.com/MoyDesign/MoyDocs/blob/master/README.md' target='_blank'>here</a>.</p>
+      </div>
+    </div>
+    <script src="/lib/browser-polyfill.min.js"></script>
+    <script src="/src/welcome.js"></script>
+  </body>
+</html>

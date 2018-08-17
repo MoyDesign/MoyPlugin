@@ -44,6 +44,7 @@ const AUX_CONTENT_SCRIPTS = ['/lib/handlebars.min.js', '/lib/jquery.slim.min.js'
 const MAIN_CONTENT_SCRIPT = '/src/cs.js'
 const POLYFILL_CONTENT_SCRIPT = '/lib/browser-polyfill.min.js'
 const FRAME_INJECTOR_SCRIPT = '/src/frame-injector.js'
+const WELCOME_PAGE = '/src/welcome.html'
 
 const REFRESH_INTERVAL = 5 * HOUR
 const CHECK_INTERVAL = 5 * MINUTE
@@ -138,6 +139,7 @@ async function refreshData() {
             .then(res => {
                 state.parsers = res[0]
                 state.templates = res[1]
+                showWelcomePage()
             })
             .catch(e => {
                 console.log('Failed to refresh data', e)
@@ -419,6 +421,19 @@ async function setSettings(newSettings) {
     }
 }
 
+function showWelcomePage() {
+    browser.tabs.create({url: WELCOME_PAGE}).catch(e => console.log('Failed to show Welcome page', e))
+}
+
+function getTestPages() {
+    return {
+        testPages: Array.from(state.parsers.values()).filter(p => 0 < p.info.testPages.length).map(p => ({
+            name: p.name,
+            urls: p.info.testPages
+        }))
+    }
+}
+
 function onMessage(msg, sender) {
     if ('info' === msg.type) {
         return promise(getTabInfo(sender.tab))
@@ -434,6 +449,13 @@ function onMessage(msg, sender) {
 
     } else if ('set_settings' === msg.type) {
         return setSettings(msg.settings)
+
+    } else if ('show_welcome_page' === msg.type) {
+        showWelcomePage()
+        return promise({})
+
+    } else if ('get_test_pages' === msg.type) {
+        return promise(getTestPages())
     }
 }
 

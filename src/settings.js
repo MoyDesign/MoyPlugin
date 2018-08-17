@@ -57,6 +57,10 @@ function onSaveClick() {
     save().catch(e => console.log('Failed to save settings', e))
 }
 
+function onWelcomePageClick() {
+    browser.runtime.sendMessage({type: 'show_welcome_page'})
+}
+
 async function load() {
     const {settings, defaultSettings} = await browser.runtime.sendMessage({type: 'get_settings'})
     githubUserInput.value = settings.githubUser
@@ -70,3 +74,4 @@ async function load() {
 load().catch(e => console.log('Failed to load settings', e))
 saveBut.onclick = onSaveClick
 githubUserInput.oninput = dirty
+welcomePageBut.onclick = onWelcomePageClick
