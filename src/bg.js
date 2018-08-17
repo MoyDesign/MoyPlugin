@@ -56,7 +56,8 @@ const DEFAULT_SETTINGS = {
 let settings = {
     typeTemplates: new Map(),
     parserTemplates: new Map(),
-    githubUser: DEFAULT_SETTINGS.githubUser
+    githubUser: DEFAULT_SETTINGS.githubUser,
+    welcomePageShown: false
 }
 
 let state = {
@@ -72,7 +73,8 @@ async function saveSettings() {
     await browser.storage.local.set({
         typeTemplates: [...settings.typeTemplates],
         parserTemplates: [...settings.parserTemplates],
-        githubUser: settings.githubUser || DEFAULT_SETTINGS.githubUser
+        githubUser: settings.githubUser || DEFAULT_SETTINGS.githubUser,
+        welcomePageShown: settings.welcomePageShown || false
     })
 }
 
@@ -81,7 +83,8 @@ async function loadSettings() {
     if (tmp) {
         settings.typeTemplates = new Map(tmp.typeTemplates || [])
         settings.parserTemplates = new Map(tmp.parserTemplates || [])
-        settings.githubUser = tmp.githubUser || DEFAULT_SETTINGS.githubUser
+        settings.githubUser = tmp.githubUser || DEFAULT_SETTINGS.githubUser,
+        settings.welcomePageShown = tmp.welcomePageShown || false
     }
 }
 
@@ -139,7 +142,9 @@ async function refreshData() {
             .then(res => {
                 state.parsers = res[0]
                 state.templates = res[1]
-                showWelcomePage()
+                if (!settings.welcomePageShown) {
+                    showWelcomePage()
+                }
             })
             .catch(e => {
                 console.log('Failed to refresh data', e)
@@ -422,7 +427,12 @@ async function setSettings(newSettings) {
 }
 
 function showWelcomePage() {
-    browser.tabs.create({url: WELCOME_PAGE}).catch(e => console.log('Failed to show Welcome page', e))
+    browser.tabs.create({url: WELCOME_PAGE})
+        .then(() => {
+            settings.welcomePageShown = true
+            saveSettings()
+        })
+        .catch(e => console.log('Failed to show Welcome page', e))
 }
 
 function getTestPages() {
