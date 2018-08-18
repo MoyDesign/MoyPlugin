@@ -22,10 +22,6 @@ SOFTWARE.
 
 'use strict'
 
-function el(elemId) {
-    return document.getElementById(elemId)
-}
-
 async function switchLook(name) {
     await browser.runtime.sendMessage({type: 'switch_look', name: name})
 }
@@ -33,12 +29,12 @@ async function switchLook(name) {
 function addLook(name, ...classes) {
     const look = document.createElement('button')
     look.innerText = name
-    look.classList.add('look')
+    look.classList.add('gap')
     look.classList.add(...classes)
     if (!classes.includes('active')) {
         look.onclick = () => switchLook(name).catch(e => console.log('Failed to load look', e))
     }
-    el('moyed').appendChild(look)
+    moyedCont.appendChild(look)
 }
 
 async function load() {
@@ -68,4 +64,9 @@ function onDocumentClick(e) {
 load().catch(e => console.log('Failed to load Moy info', e))
 
 document.addEventListener('click', onDocumentClick)
-el('settings').href = browser.extension.getURL('src/settings.html')
+settingsBut.onclick = () => window.open(browser.extension.getURL('src/settings.html'), '_blank')
+advancedBut.onclick = () => {
+    const hidden = 'none' === advancedCont.style.display
+    advancedCont.style.display = hidden ? 'block' : 'none'
+    return false
+}

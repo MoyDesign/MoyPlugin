@@ -18,23 +18,37 @@
         font-family: "Helvetica Neue", Arial, sans-serif;
         color: #444;
         display: inline-block;
-        float: right;
-      }      
+      }
+      button.gap:not(:last-child) {
+        margin-bottom: 10px;
+      }
+      button.gap + button.gap.original, button.gap.original + button.gap {
+        margin-top: 10px;
+      }
     </style>
   </head>
   <body>
-    <div class='container'>
-      <div class='flex row' style='justify-content: space-around; margin-bottom: 10px;'>
-        <div class="moy-logo-block"><a href="https://moy.design" target="_blank">
-          <img src="/res/moy.svg"><strong>MOY</strong></a>
+    <div class='flex col' style='float: right;'>
+      <div class='container'>
+        <div class='flex row' style='justify-content: space-around; margin-bottom: 10px;'>
+          <div class="moy-logo-block"><a href="https://moy.design" target="_blank">
+            <img src="/res/moy.svg"><strong>MOY</strong></a>
+          </div>
+        </div>
+
+        <div id='moyedCont' class='flex col'></div>
+        <div class='flex row' style='justify-content: space-around; margin-top: 10px; white-space: nowrap;'>
+          <a href='https://github.com/MoyDesign/MoyPlugin/blob/master/README.md#get-help' target='_blank'>Get help</a>
+          <span style='min-width: 10px; width: 10px;'></span>
+          <a id='advancedBut' target='_blank' href='#'>Advanced</a>
         </div>
       </div>
-
-      <div id='moyed' class='flex col'></div>
-      <div class='flex row' style='justify-content: space-around; margin-top: 10px; white-space: nowrap;'>
-        <a href='https://github.com/MoyDesign/MoyPlugin/blob/master/README.md#get-help' target='_blank'>Get help</a>
-        <span style='min-width: 10px; width: 10px;'></span>
-        <a id='settings' target='_blank'>Settings</a>
+      <div id='advancedCont' class='container' style='display: none;'>
+        <div class='flex col'>
+          <button id='settingsBut' class='gap'>Settings</button>
+          <button id='draftParserBut' class='gap'>Draft parser</button>
+          <button id='draftTemplateBut' class='gap'>Draft template</button>
+        </div>
       </div>
     </div>
     <script src="/lib/browser-polyfill.min.js"></script>
