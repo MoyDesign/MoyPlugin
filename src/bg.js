@@ -46,7 +46,6 @@ const POLYFILL_CONTENT_SCRIPT = '/lib/browser-polyfill.min.js'
 const FRAME_INJECTOR_SCRIPT = '/src/frame-injector.js'
 const WELCOME_PAGE = '/src/welcome.html'
 const DRAFT_PAGE = '/src/draft.html'
-const DRAFT_SCRIPT = '/src/draft.js'
 
 const REFRESH_INTERVAL = 5 * HOUR
 const CHECK_INTERVAL = 5 * MINUTE
@@ -460,19 +459,26 @@ async function openDraft(tab, existing, draftType) {
     if (!existing && !binding) {
         throw new Error('No binding for tab')
     }
-    const draftTab = await browser.tabs.create({url: DRAFT_PAGE, index: tab.index + 1})
-    let draftText
-    if (existing) {
-        draftText = 'parser' === draftType ? settings.parserDraft : settings.templateDraft
-    } else {
-        draftText = 'parser' === draftType ? binding.parser.options.text : binding.template.options.text
-    }
-    await browser.tabs.executeScript(draftTab.id, {
-        code: 
-            `const draftText = ${quotedString(draftText)}
-             const draftType = ${quotedString(draftType)}`
+    const name = existing ? '' : ('parser' === draftType ? binding.parser.name : binding.template.name)
+    await browser.tabs.create({
+        url: `${DRAFT_PAGE}?${draftType}=${encodeURIComponent(name)}`,
+        index: tab.index + 1
     })
-    await browser.tabs.executeScript(draftTab.id, {file: DRAFT_SCRIPT})
+}
+
+function loadDraft(existing, draftType, name) {
+    if ('parser' !== draftType && 'template' !== draftType) {
+        throw new Error('Invalid draft type')
+    }
+    let ret = {}
+    if (existing) {
+        ret = {text: settings[`${draftType}Draft`]}
+    } else {
+        const entity = state[`${draftType}s`].get(name)
+        ret = {text: entity ? entity.options.text : ''}
+    }
+    console.log('load_draft ret', ret)
+    return ret
 }
 
 function onMessage(msg, sender) {
@@ -498,8 +504,11 @@ function onMessage(msg, sender) {
     } else if ('get_test_pages' === msg.type) {
         return promise(getTestPages())
 
-    } else if ('open_draft' === msg.type) {
+    } else if ('open_draft_page' === msg.type) {
         return openDraft(sender.tab, msg.existing, msg.draftType)
+
+    } else if ('load_draft' === msg.type) {
+        return promise(loadDraft(msg.existing, msg.draftType, msg.name))
     }
 }
 

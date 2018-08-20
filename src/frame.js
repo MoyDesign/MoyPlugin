@@ -30,7 +30,7 @@ function hide(...elems) {
 
 async function openDraft(existing, draftType) {
     hide(confirmDialog)
-    await browser.runtime.sendMessage({type: 'open_draft', existing: existing, draftType: draftType})
+    await browser.runtime.sendMessage({type: 'open_draft_page', existing: existing, draftType: draftType})
 }
 
 async function switchLook(name) {

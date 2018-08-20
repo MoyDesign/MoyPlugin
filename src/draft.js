@@ -22,5 +22,33 @@ SOFTWARE.
 
 'use strict'
 
-draftTypeSpan.innerText = draftType
-draftTextarea.value = draftText
+function getDraftType() {
+    const {searchParams} = PARSED_URL
+    if (searchParams.has('parser')) {
+        return 'parser'
+    } else if (searchParams.has('template')) {
+        return 'template'
+    } else {
+        throw new Error('Either parser or template argument must present')
+    }
+}
+
+const PARSED_URL = new URL(window.location.href)
+const DRAFT_TYPE = getDraftType()
+const DRAFT_NAME = PARSED_URL.searchParams.get(DRAFT_TYPE)
+const EXISTING = !DRAFT_NAME
+
+async function load() {
+    const {text} = await browser.runtime.sendMessage({
+        type: 'load_draft',
+        existing: EXISTING,
+        name: DRAFT_NAME,
+        draftType: DRAFT_TYPE
+    })
+    draftTextarea.value = text
+}
+
+draftTypeSpan.innerText = DRAFT_TYPE
+document.title = `Draft ${DRAFT_TYPE} - Moy.Design`
+
+load().catch(e => console.log('Failed to load draft', e))
