@@ -45,7 +45,6 @@ const MAIN_CONTENT_SCRIPT = '/src/cs.js'
 const POLYFILL_CONTENT_SCRIPT = '/lib/browser-polyfill.min.js'
 const FRAME_INJECTOR_SCRIPT = '/src/frame-injector.js'
 const WELCOME_PAGE = '/src/welcome.html'
-const DRAFT_PAGE = '/src/draft.html'
 
 const REFRESH_INTERVAL = 5 * HOUR
 const CHECK_INTERVAL = 5 * MINUTE
@@ -58,9 +57,7 @@ let settings = {
     typeTemplates: new Map(),
     parserTemplates: new Map(),
     githubUser: DEFAULT_SETTINGS.githubUser,
-    welcomePageShown: false,
-    parserDraft: '',
-    templateDraft: ''
+    welcomePageShown: false
 }
 
 let state = {
@@ -72,14 +69,22 @@ let state = {
     tabBindings: new Map()
 }
 
+function createParser(options) {
+    const {text, link} = options
+    return new MoyParser({content: jsyaml.safeLoad(text), text: text, link: link})
+}
+
+function createTemplate(options) {
+    const {text, link} = options
+    return new MoyTemplate({content: text, parseYaml: jsyaml.safeLoad, text: text, link: link})
+}
+
 async function saveSettings() {
     await browser.storage.local.set({
         typeTemplates: [...settings.typeTemplates],
         parserTemplates: [...settings.parserTemplates],
         githubUser: settings.githubUser || DEFAULT_SETTINGS.githubUser,
-        welcomePageShown: settings.welcomePageShown || false,
-        parserDraft: settings.parserDraft || '',
-        templateDraft: settings.templateDraft || ''
+        welcomePageShown: settings.welcomePageShown || false
     })
 }
 
@@ -90,8 +95,6 @@ async function loadSettings() {
         settings.parserTemplates = new Map(tmp.parserTemplates || [])
         settings.githubUser = tmp.githubUser || DEFAULT_SETTINGS.githubUser,
         settings.welcomePageShown = tmp.welcomePageShown || false
-        settings.parserDraft = tmp.parserDraft || ''
-        settings.templateDraft = tmp.templateDraft || ''
     }
 }
 
@@ -100,7 +103,10 @@ async function fetchFile(githubFileInfo) {
     if (!resp.ok) {
         throw new Error(`${resp.statusText}: ${githubFileInfo.download_url}`)
     }
-    return await resp.text()
+    return {
+        link: githubFileInfo.html_url,
+        text: await resp.text()
+    }
 }
 
 function githubDirUrl(dirname) {
@@ -118,13 +124,11 @@ async function fetchDir(dirname) {
 }
 
 async function fetchParser(githubFileInfo) {
-    const text = await fetchFile(githubFileInfo)
-    return new MoyParser({content: jsyaml.safeLoad(text), text: text})
+    return createParser(await fetchFile(githubFileInfo))
 }
 
 async function fetchTemplate(githubFileInfo) {
-    const text = await fetchFile(githubFileInfo)
-    return new MoyTemplate({content: text, parseYaml: jsyaml.safeLoad, text: text})
+    return createTemplate(await fetchFile(githubFileInfo))
 }
 
 async function fetchMap(dirname, fileFetcher, entityFilter) {
@@ -360,7 +364,9 @@ function bindingInfo(binding) {
         const {parser, template} = binding
         return {
             parserName: parser.name,
-            templateName: template.name
+            parserLink: parser.options.link,
+            templateName: template.name,
+            templateLink: template.options.link
         }
     }
 }
@@ -451,43 +457,6 @@ function getTestPages() {
     }
 }
 
-async function openDraft(tab, existing, draftType) {
-    if ('parser' !== draftType && 'template' !== draftType) {
-        throw new Error('Invalid draft type')
-    }
-    const binding = existing ? undefined : state.tabBindings.get(tab.id)
-    if (!existing && !binding) {
-        throw new Error('No binding for tab')
-    }
-    const name = existing ? '' : ('parser' === draftType ? binding.parser.name : binding.template.name)
-    await browser.tabs.create({
-        url: `${DRAFT_PAGE}?${draftType}=${encodeURIComponent(name)}`,
-        index: tab.index + 1
-    })
-}
-
-function getDraft(existing, draftType, name) {
-    if ('parser' !== draftType && 'template' !== draftType) {
-        throw new Error('Invalid draft type')
-    }
-    let ret = {}
-    if (existing) {
-        ret = {text: settings[`${draftType}Draft`]}
-    } else {
-        const entity = state[`${draftType}s`].get(name)
-        ret = {text: entity ? entity.options.text : ''}
-    }
-    return ret
-}
-
-async function setDraft(draftType, text) {
-    if ('parser' !== draftType && 'template' !== draftType) {
-        throw new Error('Invalid draft type')
-    }
-    settings[`${draftType}Draft`] = '' + text
-    await saveSettings()
-}
-
 function onMessage(msg, sender) {
     if ('info' === msg.type) {
         return promise(getTabInfo(sender.tab))
@@ -510,15 +479,6 @@ function onMessage(msg, sender) {
 
     } else if ('get_test_pages' === msg.type) {
         return promise(getTestPages())
-
-    } else if ('open_draft_page' === msg.type) {
-        return openDraft(sender.tab, msg.existing, msg.draftType)
-
-    } else if ('get_draft' === msg.type) {
-        return promise(getDraft(msg.existing, msg.draftType, msg.name))
-
-    } else if ('set_draft' === msg.type) {
-        return setDraft(msg.draftType, msg.text)
     }
 }
 

@@ -22,17 +22,6 @@ SOFTWARE.
 
 'use strict'
 
-function hide(...elems) {
-    for (const elem of elems) {
-        elem.style.display = 'none'
-    }
-}
-
-async function openDraft(existing, draftType) {
-    hide(confirmDialog)
-    await browser.runtime.sendMessage({type: 'open_draft_page', existing: existing, draftType: draftType})
-}
-
 async function switchLook(name) {
     await browser.runtime.sendMessage({type: 'switch_look', name: name})
 }
@@ -53,9 +42,18 @@ async function load() {
     const {binding, otherLooks, originalLookName} = info
     if (binding) {
         addLook(binding.templateName, 'active')
+        const link = document.createElement('a')
+        if (binding.parserLink) {
+            link.href = binding.parserLink
+        }
+        link.innerText = binding.parserName
+        link.target = '_blank'
+        link.style.textAlign = 'center'
+        link.style.display = 'inline-block'
+        link.classList.add('gap')
+        settingsBut.parentNode.appendChild(link)        
     } else {
         addLook(originalLookName, 'active', 'original')
-        hide(overrideDraftBut)
     }
     if (otherLooks) {
         otherLooks.forEach(l => addLook(l))
@@ -73,13 +71,6 @@ function onDocumentClick(e) {
     }
 }
 
-function onDraftClick(draftType) {
-    openDraftBut.dataset.draftType = draftType
-    overrideDraftBut.dataset.draftType = draftType
-    overrideDraftBut.innerText = 'Override existing draft with current ' + draftType
-    confirmDialog.style.display = 'block'
-}
-
 load().catch(e => console.log('Failed to load Moy info', e))
 
 document.addEventListener('click', onDocumentClick)
@@ -89,10 +80,3 @@ advancedBut.onclick = () => {
     advancedCont.style.display = hidden ? 'block' : 'none'
     return false
 }
-draftParserBut.onclick = () => onDraftClick('parser')
-draftTemplateBut.onclick = () => onDraftClick('template')
-openDraftBut.onclick =
-    () => openDraft(true, openDraftBut.dataset.draftType).catch(e => console.log('Failed to open draft', e))
-overrideDraftBut.onclick = 
-    () => openDraft(false, overrideDraftBut.dataset.draftType).catch(e => console.log('Failed to override draft', e))
-cancelBut.onclick = () => hide(confirmDialog)

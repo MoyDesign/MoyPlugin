@@ -25,15 +25,6 @@
       button.gap + button.gap.original, button.gap.original + button.gap {
         margin-top: 10px;
       }
-      .modal {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        max-height: calc(100% - 100px);
-        z-index: 1000;
-        box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
-      }
     </style>
   </head>
   <body>
@@ -55,16 +46,7 @@
       <div id='advancedCont' class='container' style='display: none;'>
         <div class='flex col'>
           <button id='settingsBut' class='gap'>Settings</button>
-          <button id='draftParserBut' class='gap'>Draft parser</button>
-          <button id='draftTemplateBut' class='gap'>Draft template</button>
         </div>
-      </div>
-    </div>
-    <div id='confirmDialog' class='container modal' style='display: none;'>
-      <div class='flex col'>
-        <button id='openDraftBut' class='gap'>Open existing draft</button>
-        <button id='overrideDraftBut' class='gap'>Override existing draft</button>
-        <button id='cancelBut' class='gap original'>Cancel</button>
       </div>
     </div>
     <script src="/lib/browser-polyfill.min.js"></script>
