@@ -466,7 +466,7 @@ async function openDraft(tab, existing, draftType) {
     })
 }
 
-function loadDraft(existing, draftType, name) {
+function getDraft(existing, draftType, name) {
     if ('parser' !== draftType && 'template' !== draftType) {
         throw new Error('Invalid draft type')
     }
@@ -477,8 +477,15 @@ function loadDraft(existing, draftType, name) {
         const entity = state[`${draftType}s`].get(name)
         ret = {text: entity ? entity.options.text : ''}
     }
-    console.log('load_draft ret', ret)
     return ret
+}
+
+async function setDraft(draftType, text) {
+    if ('parser' !== draftType && 'template' !== draftType) {
+        throw new Error('Invalid draft type')
+    }
+    settings[`${draftType}Draft`] = '' + text
+    await saveSettings()
 }
 
 function onMessage(msg, sender) {
@@ -507,8 +514,11 @@ function onMessage(msg, sender) {
     } else if ('open_draft_page' === msg.type) {
         return openDraft(sender.tab, msg.existing, msg.draftType)
 
-    } else if ('load_draft' === msg.type) {
-        return promise(loadDraft(msg.existing, msg.draftType, msg.name))
+    } else if ('get_draft' === msg.type) {
+        return promise(getDraft(msg.existing, msg.draftType, msg.name))
+
+    } else if ('set_draft' === msg.type) {
+        return setDraft(msg.draftType, msg.text)
     }
 }
 

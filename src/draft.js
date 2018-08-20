@@ -38,17 +38,39 @@ const DRAFT_TYPE = getDraftType()
 const DRAFT_NAME = PARSED_URL.searchParams.get(DRAFT_TYPE)
 const EXISTING = !DRAFT_NAME
 
+let originalText
+
 async function load() {
     const {text} = await browser.runtime.sendMessage({
-        type: 'load_draft',
+        type: 'get_draft',
         existing: EXISTING,
         name: DRAFT_NAME,
         draftType: DRAFT_TYPE
     })
+    originalText = text
     draftTextarea.value = text
+}
+
+async function save() {
+    originalText = draftTextarea.value
+    await browser.runtime.sendMessage({
+        type: 'set_draft',
+        draftType: DRAFT_TYPE,
+        text: draftTextarea.value
+    })
+    PARSED_URL.searchParams.set(DRAFT_TYPE, '')
+    window.location.href = '' + PARSED_URL
 }
 
 draftTypeSpan.innerText = DRAFT_TYPE
 document.title = `Draft ${DRAFT_TYPE} - Moy.Design`
 
 load().catch(e => console.log('Failed to load draft', e))
+saveBut.onclick = () => save().catch(e => console.log('Failed to save draft', e))
+
+window.onbeforeunload = (event) => {
+    if (originalText && originalText !== draftTextarea.value) {
+        event.preventDefault()
+        event.returnValue = 'There are unsaved changes. Are you sure?'
+    }
+}
