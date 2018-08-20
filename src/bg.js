@@ -479,6 +479,9 @@ function onMessage(msg, sender) {
 
     } else if ('get_test_pages' === msg.type) {
         return promise(getTestPages())
+
+    } else if ('refresh_data' === msg.type) {
+        return refreshData()
     }
 }
 
