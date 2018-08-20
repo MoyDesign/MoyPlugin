@@ -45,6 +45,8 @@ const MAIN_CONTENT_SCRIPT = '/src/cs.js'
 const POLYFILL_CONTENT_SCRIPT = '/lib/browser-polyfill.min.js'
 const FRAME_INJECTOR_SCRIPT = '/src/frame-injector.js'
 const WELCOME_PAGE = '/src/welcome.html'
+const DRAFT_PAGE = '/src/draft.html'
+const DRAFT_SCRIPT = '/src/draft.js'
 
 const REFRESH_INTERVAL = 5 * HOUR
 const CHECK_INTERVAL = 5 * MINUTE
@@ -57,7 +59,9 @@ let settings = {
     typeTemplates: new Map(),
     parserTemplates: new Map(),
     githubUser: DEFAULT_SETTINGS.githubUser,
-    welcomePageShown: false
+    welcomePageShown: false,
+    parserDraft: '',
+    templateDraft: ''
 }
 
 let state = {
@@ -74,7 +78,9 @@ async function saveSettings() {
         typeTemplates: [...settings.typeTemplates],
         parserTemplates: [...settings.parserTemplates],
         githubUser: settings.githubUser || DEFAULT_SETTINGS.githubUser,
-        welcomePageShown: settings.welcomePageShown || false
+        welcomePageShown: settings.welcomePageShown || false,
+        parserDraft: settings.parserDraft || '',
+        templateDraft: settings.templateDraft || ''
     })
 }
 
@@ -85,6 +91,8 @@ async function loadSettings() {
         settings.parserTemplates = new Map(tmp.parserTemplates || [])
         settings.githubUser = tmp.githubUser || DEFAULT_SETTINGS.githubUser,
         settings.welcomePageShown = tmp.welcomePageShown || false
+        settings.parserDraft = tmp.parserDraft || ''
+        settings.templateDraft = tmp.templateDraft || ''
     }
 }
 
@@ -112,12 +120,12 @@ async function fetchDir(dirname) {
 
 async function fetchParser(githubFileInfo) {
     const text = await fetchFile(githubFileInfo)
-    return new MoyParser({content: jsyaml.safeLoad(text)})
+    return new MoyParser({content: jsyaml.safeLoad(text), text: text})
 }
 
 async function fetchTemplate(githubFileInfo) {
     const text = await fetchFile(githubFileInfo)
-    return new MoyTemplate({content: text, parseYaml: jsyaml.safeLoad})
+    return new MoyTemplate({content: text, parseYaml: jsyaml.safeLoad, text: text})
 }
 
 async function fetchMap(dirname, fileFetcher, entityFilter) {
@@ -444,6 +452,29 @@ function getTestPages() {
     }
 }
 
+async function openDraft(tab, existing, draftType) {
+    if ('parser' !== draftType && 'template' !== draftType) {
+        throw new Error('Invalid draft type')
+    }
+    const binding = existing ? undefined : state.tabBindings.get(tab.id)
+    if (!existing && !binding) {
+        throw new Error('No binding for tab')
+    }
+    const draftTab = await browser.tabs.create({url: DRAFT_PAGE, index: tab.index + 1})
+    let draftText
+    if (existing) {
+        draftText = 'parser' === draftType ? settings.parserDraft : settings.templateDraft
+    } else {
+        draftText = 'parser' === draftType ? binding.parser.options.text : binding.template.options.text
+    }
+    await browser.tabs.executeScript(draftTab.id, {
+        code: 
+            `const draftText = ${quotedString(draftText)}
+             const draftType = ${quotedString(draftType)}`
+    })
+    await browser.tabs.executeScript(draftTab.id, {file: DRAFT_SCRIPT})
+}
+
 function onMessage(msg, sender) {
     if ('info' === msg.type) {
         return promise(getTabInfo(sender.tab))
@@ -466,6 +497,9 @@ function onMessage(msg, sender) {
 
     } else if ('get_test_pages' === msg.type) {
         return promise(getTestPages())
+
+    } else if ('open_draft' === msg.type) {
+        return openDraft(sender.tab, msg.existing, msg.draftType)
     }
 }
 
