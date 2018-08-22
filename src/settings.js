@@ -43,7 +43,7 @@ function dirty() {
     saveBut.innerText = 'Save*'
 }
 
-async function sendMessageOnClick(msg, button) {
+async function sendMessageOnClick(msg, button, successCaption) {
     hideResultDivs()
     const onclick = button.onclick
     button.onclick = undefined
@@ -53,12 +53,13 @@ async function sendMessageOnClick(msg, button) {
     try {
         await browser.runtime.sendMessage(msg)
         addResultNode(button.parentNode)
+        button.innerText = successCaption || caption
     } catch (e) {
         addResultNode(button.parentNode, '' + e)
+        button.innerText = caption
     } finally {
         button.onclick = onclick
         button.style.cursor = 'default'
-        button.innerText = caption
     }
 }
 
@@ -66,7 +67,7 @@ function onSaveClick() {
     const newSettings = {
         githubUser: githubUserInput.value
     }
-    sendMessageOnClick({type: 'set_settings', settings: newSettings}, saveBut)
+    sendMessageOnClick({type: 'set_settings', settings: newSettings}, saveBut, 'Save')
         .catch(e => console.log('Failed to save settings', e))
 }
 
