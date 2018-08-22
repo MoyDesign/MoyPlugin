@@ -37,21 +37,26 @@ function addLook(name, ...classes) {
     moyedCont.appendChild(look)
 }
 
+function addLinkButton(parentNode, caption, tooltip, href) {
+    const link = document.createElement('button')
+    link.innerText = caption
+    if (href) {
+        link.onclick = () => window.open(href, '_blank')
+    }
+    if (tooltip) {
+        link.title = tooltip
+    }
+    link.classList.add('gap')
+    parentNode.appendChild(link)
+}
+
 async function load() {
     const info = await browser.runtime.sendMessage({type: 'info'})
     const {binding, otherLooks, originalLookName} = info
     if (binding) {
         addLook(binding.templateName, 'active')
-        const link = document.createElement('a')
-        if (binding.parserLink) {
-            link.href = binding.parserLink
-        }
-        link.innerText = binding.parserName
-        link.target = '_blank'
-        link.style.textAlign = 'center'
-        link.style.display = 'inline-block'
-        link.classList.add('gap')
-        settingsBut.parentNode.appendChild(link)        
+        addLinkButton(settingsBut.parentNode, 'Open parser', binding.parserName, binding.parserLink)
+        addLinkButton(settingsBut.parentNode, 'Open template', binding.templateName, binding.templateLink)
     } else {
         addLook(originalLookName, 'active', 'original')
     }
