@@ -24,15 +24,48 @@ SOFTWARE.
 
 !(function() {
 
-    function renderPage(pageHtml) {
-        document.documentElement.innerHTML = pageHtml
-    }
-
     let oldUrl = window.location.href
     let pageMoyed = false
+    let observer = null
 
     // parserOptions is injected by the background script
     const parser = new MoyParser(parserOptions)
+
+    function findAnchorElem() {
+        const anchor = location.hash.substring(1)
+        let el = document.getElementById(anchor)
+        if (!el) {
+            const elems = document.getElementsByName(anchor)
+            if (0 < elems.length) {
+                el = elems[0]
+            }
+        }
+        return el
+    }
+
+    function scrollToHash() {
+        try {
+            const anchorElem = findAnchorElem()
+            if (anchorElem) {
+                anchorElem.scrollIntoView()
+            } else {
+                window.scrollTo(0, 0)
+            }
+        } catch (e) {
+            console.log('Failed to scroll to hash', e)
+        } finally {
+            if (observer) {
+                observer.disconnect()
+                observer = null
+            }
+        }
+    }
+
+    function renderPage(pageHtml) {
+        observer = new MutationObserver(scrollToHash)
+        observer.observe(document.documentElement, {childList: true})
+        document.documentElement.innerHTML = pageHtml
+    }
 
     function checkUrl() {
         if (oldUrl != window.location.href) {
