@@ -10,7 +10,7 @@
 
   "name": "Moy.Design",
   "description": "Change the looks of your favourite websites. You can either make your own looks or use ones other people made.",
-  "version": "2.1.0",
+  "version": "2.1.1",
 
   "icons": {
     "128": "res/icon.png"
