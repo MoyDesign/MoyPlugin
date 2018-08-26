@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <title>Settings - Moy.Design</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/src/style.css">
     <style>
       body {
@@ -10,17 +11,21 @@
         font-family: "Helvetica Neue", Arial, sans-serif;
       }
       .container {
-        margin: 6px auto;
-        padding: 10px;
-        border: 2px solid #C20108;
-        border-radius: 5px;
         background-color: #fff;
         line-height: 1.6;
         font-size: 16px;
         font-family: "Helvetica Neue", Arial, sans-serif;
         color: #444;
-        max-width: 600px;
       }
+      @media only screen and (min-width: 650px) {
+        .container {
+          max-width: 600px;
+          border: 2px solid #C20108;
+          border-radius: 5px;
+          padding: 10px;
+          margin: 6px auto;
+        }
+      } 
       .row + .row {
         margin-top: 10px;
       }
