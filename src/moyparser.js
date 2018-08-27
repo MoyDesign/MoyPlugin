@@ -399,7 +399,7 @@ function parseWithRule(jQuery, contextElem, rule) {
         }
         if (rule.rules) {
             ret = ret.map(function(elem) {
-                var mapped = { WHOLE: elem.outerHTML }
+                var mapped = {}
                 var children = parseWithRules(jQuery, elem, rule.rules).content
                 children.forEach(function(cv, ck) {
                     mapped[ck] = cv
