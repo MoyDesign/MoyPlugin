@@ -290,6 +290,7 @@ function onDOMContentLoaded(details) {
             executeRenderingScripts(tabId, binding)
                     .catch(e => console.log('Failed to execute rendering content scripts', e))
         }
+        switchPageAction(tabId, url)
     }
 }
 
@@ -303,12 +304,6 @@ function switchPageAction(tabId, url) {
         browser.pageAction.show(tabId)
     } else {
         browser.pageAction.hide(tabId)
-    }
-}
-
-function onTabUpdated(tabId, changeInfo) {
-    if (changeInfo.url) {
-        switchPageAction(tabId, changeInfo.url)
     }
 }
 
@@ -499,6 +494,5 @@ browser.runtime.onMessage.addListener(onMessage)
 
 browser.tabs.onRemoved.addListener(onTabRemoved)
 browser.tabs.onReplaced.addListener(onTabReplaced)
-browser.tabs.onUpdated.addListener(onTabUpdated)
 
 initTabs().catch(e => console.log('Failed to init tabs', e))
