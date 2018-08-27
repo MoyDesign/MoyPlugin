@@ -375,17 +375,20 @@ function parseWithMatchBlock(jQuery, contextElem, matchBlock, hasSubRules) {
     }).get()
 }
 
+function stripHtml(jQuery, str) {
+    return jQuery('<div/>').html(str).text()
+}
+
 function parseWithRule(jQuery, contextElem, rule) {
     const hasSubRules = rule.rules
     const match = rule.match
     const attribute = rule.attribute
-    const value = rule.value
     let ret = []
     if (!match) {
         if (rule.attribute) {
             ret.push(jQuery(contextElem).attr(attribute) || '')
         } else {
-            ret = ret.concat(rule['value'])
+            ret = ret.concat(stripHtml(jQuery, rule['value']))
         }
     } else {
         // match block
