@@ -31,7 +31,6 @@ const SECOND = 1000
 const MINUTE = 60 * SECOND
 const HOUR = 60 * MINUTE
 
-const MOY_TRY_URL_PREFIX = 'https://moy.design/try'
 const PARSERS_DIR = 'MoyParsers'
 const TEMPLATES_DIR = 'MoyTemplates'
 const MEDIA_DOMAINS = ['youtube.com', 'youtu.be', 'ytimg.com', 'googlevideo.com', 'vimeo.com', 'vimeocdn.com', 
@@ -268,7 +267,7 @@ async function executeRenderingScripts(tabId, binding) {
 function onBeforeRequest(request) {
     const {url, tabId, type, method} = request
     if (-1 != tabId && url) {
-        if ('GET' === method && 'main_frame' === type && !url.startsWith(MOY_TRY_URL_PREFIX)) {
+        if ('GET' === method && 'main_frame' === type) {
             const binding = registerTabBinding(tabId, url)
             if (binding) {
                 const redirectUrl = binding.parser.getRedirectUrl(url)
@@ -284,7 +283,7 @@ function onBeforeRequest(request) {
 
 function onDOMContentLoaded(details) {
     const {url, tabId, frameId} = details
-    if (-1 != tabId && 0 == frameId && url && !url.startsWith(MOY_TRY_URL_PREFIX)) {
+    if (-1 != tabId && 0 == frameId && url) {
         const binding = state.tabBindings.get(tabId)
         if (binding) {
             executeRenderingScripts(tabId, binding)
