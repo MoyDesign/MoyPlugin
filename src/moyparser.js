@@ -419,6 +419,7 @@ function parseWithRule(jQuery, contextElem, rule) {
                     const i = parseInt(p1, 10)
                     return isNaN(i) ? '' : (result[i] || '')
                 })
+                elem = stripHtml(jQuery, elem)
             }
             return elem
         })
