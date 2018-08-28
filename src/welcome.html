@@ -49,7 +49,20 @@
           <li>Make web pages mobile-friendly.</li>
         </ul>
       </div>
-      <div class='row'>
+      <div id='errorDiv' class='row' style='display: none;'>
+        <h3>Oops, something went wrong :(</h3>
+        <p>Unfortunately, Moy couldn't connect to GitHub. Without it, Moy can't do much :( Last time we tried, the error was:</p>
+        <blockquote><code id='errorText'>(Unknown error)</code></blockquote>
+        <p>Below are what you can do:</p>
+        <ul>
+          <li>Make sure your Internet connection is OK and <a href='https://github.com/' target='_blank'>GitHub</a> is accessible.</li>
+          <li>Go to <a href='/src/settings.html' target='_blank'>Settings</a> and make sure the GitHub account is correct.</li>
+          <li>Click 'Refresh data' there and wait until it finishes.</li>
+          <li>If the error persists, please follow <a href='https://github.com/MoyDesign/MoyPlugin#get-help' target='_blank'>these instructions</a>.</li>
+        </ul>
+        <p>We apologize for the inconvenience :(</p>
+      </div>
+      <div id='checkItDiv' class='row'>
         <h2>Check it</h2>
         <p>Below are examples of how Moy transforms web pages. You just</p>
         <ol>

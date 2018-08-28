@@ -31,7 +31,13 @@ function createElem(type, innerText) {
 }
 
 async function load() {
-    const {testPages} = await browser.runtime.sendMessage({type: 'get_test_pages'})
+    const {error, testPages} = await browser.runtime.sendMessage({type: 'get_test_pages'})
+    if (error && 0 >= testPages.length) {
+        errorText.innerText = error
+        errorDiv.style.display = 'block'
+        checkItDiv.style.display = 'none'
+        return
+    }
     testPages.sort((a, b) => a.name.localeCompare(b.name))
     testPages.forEach(p => {
         looksDiv.appendChild(createElem('b', p.name))

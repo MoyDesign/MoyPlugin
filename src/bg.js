@@ -64,6 +64,7 @@ let state = {
     templates: new Map(),
     lastRefresh: 0,
     refreshDataPromise: null,
+    lastRefreshError: null,
 
     tabBindings: new Map()
 }
@@ -152,17 +153,19 @@ async function refreshData() {
             .then(res => {
                 state.parsers = res[0]
                 state.templates = res[1]
-                if (!settings.welcomePageShown) {
-                    showWelcomePage()
-                }
+                state.lastRefreshError = null
             })
             .catch(e => {
                 console.log('Failed to refresh data', e)
+                state.lastRefreshError = e
                 throw e
             })
             .finally(() => {
                 state.lastRefresh = Date.now()
                 state.refreshDataPromise = null
+                if (!settings.welcomePageShown) {
+                    showWelcomePage()
+                }
             })
     }
     return state.refreshDataPromise
@@ -444,6 +447,7 @@ function showWelcomePage() {
 
 function getTestPages() {
     return {
+        error: '' + state.lastRefreshError,
         testPages: Array.from(state.parsers.values()).filter(p => 0 < p.info.testPages.length).map(p => ({
             name: p.name,
             urls: p.info.testPages
