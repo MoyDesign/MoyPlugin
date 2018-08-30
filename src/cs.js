@@ -24,8 +24,6 @@ SOFTWARE.
 
 !(function() {
 
-    let oldUrl = window.location.href
-    let pageMoyed = false
     let observer = null
 
     // parserOptions is injected by the background script
@@ -67,13 +65,6 @@ SOFTWARE.
         document.documentElement.innerHTML = pageHtml
     }
 
-    function checkUrl() {
-        if (oldUrl != window.location.href) {
-            oldUrl = window.location.href
-            setTimeout(moy, 50, true)
-        }
-    }
-
     function customArrayToString() {
         return this.join(' ')
     }
@@ -93,7 +84,7 @@ SOFTWARE.
         return token
     }
 
-    function moy(fullUrlChanged) {
+    function moy() {
         const fullUrl = window.location.href
         const baseUrl = window.location.origin
         if (parser.isMatch(fullUrl)) {
@@ -107,14 +98,8 @@ SOFTWARE.
             }
             // compiledTemplateSpec is injected by the background script
             setTimeout(renderPage, 50, Handlebars.template(compiledTemplateSpec)(tokens))
-            pageMoyed = true
-        } else if (fullUrlChanged && pageMoyed) {
-            // by now, we've smashed the dynamic page, so need to reload it
-            pageMoyed = false
-            window.location.reload()
         }
     }
 
-    moy(false)
-    setInterval(checkUrl, 1000)
+    moy()
 })()
