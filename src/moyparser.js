@@ -25,7 +25,7 @@ This software also includes parts of the Lodash library. Its license is here:
 https://github.com/lodash/lodash/blob/master/LICENSE
 */
 
-/* global jQuery, Handlebars, module */
+/* global jQuery, module */
 
 'use strict'
 
@@ -499,62 +499,6 @@ MoyParser.prototype.parse = function(cb) {
     } else {
         return parseWithRules(this.jQuery, this.document, this.rules)
     }
-}
-
-function getBaseUrl(document, rawUrl) {
-    var urlParser = document.createElement('a')
-    urlParser.href = rawUrl
-    return urlParser.protocol + '//' + urlParser.host
-}
-
-function customArrayToString() {
-    return this.join(' ')
-}
-
-function isObject(v) {
-    return v === Object(v)
-}
-
-function polishToken(token) {
-    if (Array.isArray(token)) {
-        token.toString = customArrayToString
-        token.forEach(polishToken)
-    }
-    if (isObject(token)) {
-        Object.values(token).forEach(polishToken)
-    }
-    return token
-}
-
-MoyParser.parseAndRender = function(options, cb) {
-    MoyParser.create(options, function(parserCreationErr, moyParser) {
-        if (parserCreationErr) {
-            return cb(parserCreationErr)
-        }
-        moyParser.parse(function(parseErr, jqParsedData) {
-            if (parseErr) {
-                return cb(parseErr)
-            }
-            if (!options.precompiledTemplate) {
-                return cb(undefined, undefined, jqParsedData)
-            }
-            try {
-                var compiledTemplateSpec
-                eval('compiledTemplateSpec = ' + options.precompiledTemplate)
-                var tokens = {
-                    BASE_URL: [options.baseUrl || getBaseUrl(options.document || document, options.url)],
-                    FULL_URL: [options.url]
-                }
-                for (var [name, value] of jqParsedData.content) {
-                    tokens[name] = polishToken(value)
-                }
-                const H = options.Handlebars || Handlebars
-                return cb(undefined, H.template(compiledTemplateSpec)(tokens), jqParsedData)
-            } catch (err) {
-                return cb(err)
-            }
-        })
-    })
 }
 
 if (typeof module !== 'undefined' && module.exports) {
