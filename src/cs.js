@@ -62,9 +62,12 @@ SOFTWARE.
     }
 
     function renderPage(pageHtml) {
+        const hd = $.htmlDoc(pageHtml)
+        $(document.documentElement).empty()
         observer = new MutationObserver(scrollToHash)
         observer.observe(document.documentElement, {childList: true})
-        document.documentElement.innerHTML = pageHtml
+        $(document.documentElement).append(hd.find('body'))
+        $(document.documentElement).append(hd.find('head'))
     }
 
     function customArrayToString() {

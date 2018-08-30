@@ -42,7 +42,7 @@ const PAGE_ACTION_URL_PROTOCOLS = ['http:', 'https:']
 const PAGE_ACTION_BANNED_URLS = ['https://addons.mozilla.org', 'https://chrome.google.com/webstore']
 
 const AUX_CONTENT_SCRIPTS = ['/lib/handlebars.min.js', '/lib/jquery.slim.min.js', '/src/moyparser.js']
-const MAIN_CONTENT_SCRIPT = '/src/cs.js'
+const MAIN_CONTENT_SCRIPTS = ['/lib/jquery.ba-htmldoc.js', '/src/cs.js']
 const POLYFILL_CONTENT_SCRIPT = '/lib/browser-polyfill.min.js'
 const FRAME_INJECTOR_SCRIPT = '/src/frame-injector.js'
 const WELCOME_PAGE = '/src/welcome.html'
@@ -266,7 +266,9 @@ async function executeRenderingScripts(tabId, binding) {
             'const compiledTemplateSpec = eval(' + binding.template.precompiled + ')\n' +
             'const parserOptions = JSON.parse(' + quotedString(JSON.stringify(binding.parser.options)) + ')\n'
     })
-    await browser.tabs.executeScript(tabId, {file: MAIN_CONTENT_SCRIPT})
+    for (const script of MAIN_CONTENT_SCRIPTS) {
+        await browser.tabs.executeScript(tabId, {file: script})
+    }
 }
 
 function onBeforeRequest(request) {
