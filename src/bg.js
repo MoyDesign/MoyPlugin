@@ -25,6 +25,8 @@ This software also includes parts of the Handlebars library. Its license is here
 https://github.com/wycats/handlebars.js/blob/master/LICENSE
 */
 
+/* global MoyParser, MoyTemplate, jsyaml */
+
 'use strict'
 
 const SECOND = 1000
@@ -171,7 +173,7 @@ async function refreshData() {
     return state.refreshDataPromise
 }
 
-function stopDataRefreshing(reason) {
+function stopDataRefreshing() {
     if (state.refreshDataPromise) {
         Promise.reject(state.refreshDataPromise)
     }
@@ -309,7 +311,7 @@ function switchPageAction(tabId, url) {
     }
 }
 
-function onTabRemoved(tabId, removeInfo) {
+function onTabRemoved(tabId) {
     state.tabBindings.delete(tabId)
 }
 
@@ -318,7 +320,7 @@ function onTabReplaced(addedTabId, removedTabId) {
     if (removedTabBanOptions) {
         state.tabBindings.set(addedTabId, removedTabBanOptions)
     }
-    onTabRemoved(removedTabId, null)
+    onTabRemoved(removedTabId)
 }
 
 async function initTabs() {

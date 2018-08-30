@@ -20,6 +20,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+/* global errorText, errorDiv, checkItDiv, looksDiv */
+
 'use strict'
 
 function createElem(type, innerText) {

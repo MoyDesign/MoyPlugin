@@ -1,0 +1,10 @@
+env:
+  browser: true
+  es6: true
+  webextensions: true
+extends: 'eslint:recommended'
+parserOptions:
+  ecmaVersion: 2018
+rules:
+  no-console: 'off'
+  semi: 'off'

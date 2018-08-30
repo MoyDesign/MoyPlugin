@@ -25,6 +25,8 @@ This software also includes parts of the Lodash library. Its license is here:
 https://github.com/lodash/lodash/blob/master/LICENSE
 */
 
+/* global jQuery, Handlebars, module */
+
 'use strict'
 
 const REGEXP_CHAR = /[\\^$.*+?()[\]{}|]/g
