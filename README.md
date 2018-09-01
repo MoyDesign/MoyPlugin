@@ -20,13 +20,9 @@ If everything's OK, you should see something like this next time you click the p
 
 These buttons represent alternative looks available for this page. For some pages, only `Original look` is available. When you press a button, the page will be reloaded with the chosen look, and your choice is remembered. I.e. next time you load this (or similar) page, it'll be shown with the selected look.
 
-Here are some pages you can test the plugin on. Just visit them with the plugin installed.
+When the plugin's installed, it will show welcome page with some examples to test it on.
 
-1. HuffPost articles, like [this one](https://www.huffingtonpost.com/entry/cottage-cheese-nutritional-benefits-yogurt_us_5b3a33cbe4b0f3c221a2e136) or [that one](https://www.huffingtonpost.com/entry/best-fast-food-fried-chicken_us_5b328c43e4b0cb56051ccaab?section=us_taste).
-1. Medium articles, like [this one](https://medium.com/the-mission/if-you-only-read-a-few-books-in-2018-read-these-89d03fc149c6).
-1. LiveJournal blog posts, like [this one](https://shakko-kitsune.livejournal.com/1281232.html), or [feeds](https://shakko-kitsune.livejournal.com/feed/) (in Russian), including your own feed.
-
-...and more. The number of supported websites is growing. If the plugin doesn't support your favourite website yet, just [ask about it](#get-help).
+The number of supported websites is growing. If the plugin doesn't support your favourite website yet, just [ask about it](#get-help).
 
 ## Get help
 
@@ -37,7 +33,14 @@ If something is unclear or seems buggy (e.g. the plugin shows no looks for a pag
 * ask for help directly: [info@moy.design](mailto:info@moy.design)
 * contact [me](https://github.com/dsavenko) personally.
 
-## In-depth documentation
+## Technical overview
 
-Detailed documentation about the plugin, including how to create your own looks, is available [here](https://github.com/MoyDesign/MoyDocs/blob/master/README.md#moydesign-documentation).
+The plugin uses <i>parsers</i> to extract valuable information from original pages and <i>templates</i> (or <i>'looks'</i>) to render the information.
 
+Parsers and templates are located in the <a href='https://github.com/MoyDesign/MoyData'>MoyDesign's</a> MoyData GitHub repository. The plugin downloads them <b>all</b> the first time when it's installed. Then, it periodically checks for updates.
+
+You can specify another GitHub account. This is useful for creating your own parsers and templates: just fork the main MoyData repo and point the plugin to your own account. Please, consider making a pull request to the original repo afterwards.
+
+Detailed documentation about the plugin, including how to create your own parsers and templates, is available <a href='https://github.com/MoyDesign/MoyDocs/blob/master/README.md#moydesign-documentation'><b>here</b></a>.
+
+Happy hacking! :)
