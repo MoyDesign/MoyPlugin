@@ -62,12 +62,13 @@ SOFTWARE.
     }
 
     function renderPage(pageHtml) {
-        const hd = $.htmlDoc(pageHtml)
-        $(document.documentElement).empty()
-        observer = new MutationObserver(scrollToHash)
-        observer.observe(document.documentElement, {childList: true})
-        $(document.documentElement).append(hd.find('body'))
-        $(document.documentElement).append(hd.find('head'))
+        try {
+            const newDoc = new DOMParser().parseFromString(pageHtml, 'text/html')
+            const newNode = document.importNode(newDoc.documentElement, true)
+            document.replaceChild(newNode, document.documentElement)
+        } catch (e) {
+            console.log('Failed to render', e)
+        }
     }
 
     function customArrayToString() {

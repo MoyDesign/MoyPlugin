@@ -42,7 +42,7 @@ const PAGE_ACTION_URL_PROTOCOLS = ['http:', 'https:']
 const PAGE_ACTION_BANNED_URLS = ['https://addons.mozilla.org', 'https://chrome.google.com/webstore']
 
 const AUX_CONTENT_SCRIPTS = ['/lib/handlebars.min.js', '/lib/jquery.slim.min.js', '/src/moyparser.js']
-const MAIN_CONTENT_SCRIPTS = ['/lib/jquery.ba-htmldoc.js', '/src/cs.js']
+const MAIN_CONTENT_SCRIPTS = ['/src/cs.js']
 const POLYFILL_CONTENT_SCRIPT = '/lib/browser-polyfill.min.js'
 const FRAME_INJECTOR_SCRIPT = '/src/frame-injector.js'
 const WELCOME_PAGE = '/src/welcome.html'
