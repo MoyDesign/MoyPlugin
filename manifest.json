@@ -33,6 +33,12 @@
     ]
   },
 
+  "options_ui": {
+    "page": "src/settings.html",
+    "open_in_tab": true,
+    "browser_style": false
+  },
+
   "permissions": [
     "*://*/*",
     "webRequest",
