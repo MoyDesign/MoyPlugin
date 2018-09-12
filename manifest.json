@@ -3,8 +3,7 @@
 
   "applications": {
     "gecko": {
-      "id": "moy@moy.design",
-      "update_url": "https://moy.design/firefox-ext/updates.json"
+      "id": "moy@moy.design"
     }
   },
 
