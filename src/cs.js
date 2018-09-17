@@ -65,6 +65,8 @@ SOFTWARE.
         try {
             const newDoc = new DOMParser().parseFromString(pageHtml, 'text/html')
             const newNode = document.importNode(newDoc.documentElement, true)
+            observer = new MutationObserver(scrollToHash)
+            observer.observe(document, {childList: true})
             document.replaceChild(newNode, document.documentElement)
         } catch (e) {
             console.log('Failed to render', e)
