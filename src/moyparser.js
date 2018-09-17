@@ -32,6 +32,8 @@ https://github.com/lodash/lodash/blob/master/LICENSE
 const REGEXP_CHAR = /[\\^$.*+?()[\]{}|]/g
 const HAS_REGEXP_CHAR = new RegExp(REGEXP_CHAR.source)
 
+const STYLING_ATTRIBUTES = ['align', 'bgcolor', 'border', 'class', 'color', 'dir', 'height', 'style', 'width']
+
 const BASIC_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'blockquote', 'br', 'i', 'em', 'b', 'strong', 
     'ul', 'ol', 'li', 'dl', 'dt', 'dd', 'hr', 'code', 'del', 'pre', 's', 'u', 'small', 'sub', 'sup', 'img', 
     'audio', 'video', 'source', 'a', 'table', 'th', 'tr', 'td', 'thead', 'tbody', 'tfoot', 'div', 'span', 'iframe',
@@ -142,10 +144,7 @@ function ensureArray(v, msg) {
 
 function removeStyles(jQuery, rawEl) {
     const el = jQuery(rawEl)
-    el.removeAttr('style')
-    el.removeAttr('class')
-    el.removeAttr('width')
-    el.removeAttr('height')
+    STYLING_ATTRIBUTES.forEach(name => el.removeAttr(name))
     el.children().each(function() {
         removeStyles(jQuery, this)
     })
