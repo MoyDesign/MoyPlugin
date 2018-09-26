@@ -21,7 +21,7 @@ SOFTWARE.
 */
 
 /* global saveBut, githubUserInput, refreshBut, resetGithubUserBut, welcomePageBut, remoteParsersCont,
-    remoteTemplatesCont */
+    remoteTemplatesCont, $ */
 
 'use strict'
 
