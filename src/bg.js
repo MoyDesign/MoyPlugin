@@ -459,6 +459,22 @@ function getTestPages() {
     }
 }
 
+function getSettings() {
+    function mapRemote(aMap) {
+        const ret = []
+        for (const p of aMap.values()) {
+            ret.push({name: p.name, link: p.options.link})
+        }
+        return ret.sort((p1, p2) => p1.name > p2.name)
+    }
+    return {
+        settings: settings,
+        defaultSettings: DEFAULT_SETTINGS,
+        remoteParsers: mapRemote(state.parsers),
+        remoteTemplates: mapRemote(state.templates)
+    }
+}
+
 function onMessage(msg, sender) {
     if ('info' === msg.type) {
         return promise(getTabInfo(sender.tab))
@@ -470,7 +486,7 @@ function onMessage(msg, sender) {
         return switchLook(sender.tab, msg.name)
 
     } else if ('get_settings' === msg.type) {
-        return promise({settings: settings, defaultSettings: DEFAULT_SETTINGS})
+        return promise(getSettings())
 
     } else if ('set_settings' === msg.type) {
         return setSettings(msg.settings)

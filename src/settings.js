@@ -20,7 +20,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/* global saveBut, githubUserInput, refreshBut, resetGithubUserBut, welcomePageBut */
+/* global saveBut, githubUserInput, refreshBut, resetGithubUserBut, welcomePageBut, remoteParsersCont,
+    remoteTemplatesCont */
 
 'use strict'
 
@@ -83,13 +84,23 @@ function onRefreshClick() {
 }
 
 async function load() {
-    const {settings, defaultSettings} = await browser.runtime.sendMessage({type: 'get_settings'})
+    const {settings, defaultSettings, remoteParsers, remoteTemplates} = await browser.runtime.sendMessage({type: 'get_settings'})
     githubUserInput.value = settings.githubUser
     resetGithubUserBut.onclick = () => {
         githubUserInput.value = defaultSettings.githubUser
         onSaveClick()
         return false
     }
+
+    function fillRemote(container, entities) {
+        $(container).empty()
+        for (const p of entities) {
+            const link = $('<a/>').text(p.name).attr('href', p.link).attr('target', '_blank')
+            $(container).append($('<li/>').append(link))
+        }
+    }
+    fillRemote(remoteParsersCont, remoteParsers)
+    fillRemote(remoteTemplatesCont, remoteTemplates)
 }
 
 load().catch(e => console.log('Failed to load settings', e))

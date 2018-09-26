@@ -35,6 +35,9 @@
         font-family: "Courier New", "Courier", monospace;
         box-sizing: border-box;
       }
+      summary {
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
@@ -66,8 +69,21 @@
         <label for='welcomePageBut'>Welcome page:</label>
         <div><button id='welcomePageBut'>Show Welcome page</button></div>
       </div>
+      <div class='row'>
+         <details>
+          <summary>Parsers</summary>
+          <ol id='remoteParsersCont'></ol>
+        </details>
+      </div>
+      <div class='row'>
+         <details>
+          <summary>Templates</summary>
+          <ol id='remoteTemplatesCont'></ol>
+        </details>
+      </div>
     </div>
     <script src="/lib/browser-polyfill.min.js"></script>
+    <script src="/lib/jquery.slim.min.js"></script>
     <script src="/src/settings.js"></script>
   </body>
 </html>
