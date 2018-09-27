@@ -1,0 +1,72 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Editor - Moy.Design</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/src/style.css">
+    <style>
+      body {
+        background-color: #fff;
+        font-family: "Helvetica Neue", Arial, sans-serif;
+      }
+      .container {
+        background-color: #fff;
+        line-height: 1.6;
+        font-size: 16px;
+        font-family: "Helvetica Neue", Arial, sans-serif;
+        color: #444;
+        height: 100%;
+        box-sizing: border-box;
+        padding: 10px;
+      }
+      @media only screen and (min-width: 650px) {
+        .container {
+          max-width: 600px;
+          border: 2px solid #C20108;
+          margin: 6px auto;
+        }
+      } 
+      .row + .row {
+        margin-top: 10px;
+      }
+      button + button {
+        margin-right: 10px;
+      }
+      input {
+        display: block;
+        width: 100%;
+        font-size: 16px;
+        font-family: "Courier New", "Courier", monospace;
+        box-sizing: border-box;
+      }
+      textarea {
+        width: 100%;
+        height: 100%;
+        resize: none;
+        box-sizing: border-box;
+        white-space: pre;
+      }
+    </style>
+  </head>
+  <body>
+    <div style='position: fixed; top: 0; bottom: 10px; left: 0; right: 0;'>
+      <div class='container flex col'>
+        <div class='flex row' style='justify-content: space-around; margin-bottom: 10px;'>
+          <div class="moy-logo-block"><a href="https://moy.design" target="_blank">
+            <img src="/res/moy.svg"><strong>MOY</strong></a>
+          </div>
+        </div>
+        <div class='row' style='flex: 1;'>
+          <textarea id='textArea'></textarea>
+        </div>
+        <div class='row clearfix'>
+          <button id='deleteBut' class='to-right'>Delete</button>
+          <button id='saveBut' class='to-right'>Save</button>
+        </div>
+      </div>
+    </div>
+    <script src="/lib/browser-polyfill.min.js"></script>
+    <script src="/src/editor.js"></script>
+  </body>
+</html>

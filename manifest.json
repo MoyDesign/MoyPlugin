@@ -49,6 +49,7 @@
 
   "web_accessible_resources": [
     "src/frame.html",
-    "src/settings.html"
+    "src/settings.html",
+    "src/editor.html"
   ]
 }

@@ -55,6 +55,8 @@ const DEFAULT_SETTINGS = {
 }
 
 let settings = {
+    parsers: new Map(),
+    templates: new Map(),
     typeTemplates: new Map(),
     parserTemplates: new Map(),
     githubUser: DEFAULT_SETTINGS.githubUser,
@@ -83,6 +85,8 @@ function createTemplate(options) {
 
 async function saveSettings() {
     await browser.storage.local.set({
+        parsers: Array.from(settings.parsers.values).map(p => p.options.text),
+        templates: Array.from(settings.templates.values).map(t => t.options.text),
         typeTemplates: [...settings.typeTemplates],
         parserTemplates: [...settings.parserTemplates],
         githubUser: settings.githubUser || DEFAULT_SETTINGS.githubUser,
@@ -93,6 +97,19 @@ async function saveSettings() {
 async function loadSettings() {
     const tmp = await browser.storage.local.get()
     if (tmp) {
+        function mapTextArray(arr, mapperFunc) {
+            return new Map((arr || []).map(text => {
+                try {
+                    const p = mapperFunc({text: text, link: ''})
+                    return [p.name, p]
+                } catch (e) {
+                    console.log('Settings loading failure', e)
+                    return undefined
+                }
+            }).filter(Boolean))
+        }
+        settings.parsers = mapTextArray(tmp.parsers, createParser)
+        settings.templates = mapTextArray(tmp.templates, createTemplate)
         settings.typeTemplates = new Map(tmp.typeTemplates || [])
         settings.parserTemplates = new Map(tmp.parserTemplates || [])
         settings.githubUser = tmp.githubUser || DEFAULT_SETTINGS.githubUser,
@@ -186,16 +203,27 @@ function periodicDataRefresh() {
     setTimeout(periodicDataRefresh, CHECK_INTERVAL)
 }
 
-function findValue(aMap, predicate) {
-    for (const v of aMap.values()) {
-        if (predicate(v)) {
-            return v
+function findValue(mapArray, predicate) {
+    for (const aMap of mapArray) {
+        for (const v of aMap.values()) {
+            if (predicate(v)) {
+                return v
+            }
+        }
+    }
+}
+
+function getValue(mapArray, key) {
+    for (const aMap of mapArray) {
+        const ret = aMap.get(key)
+        if (ret) {
+            return ret
         }
     }
 }
 
 function findParser(url) {
-    return url && findValue(state.parsers, p => p.isMatch(url))
+    return url && findValue([settings.parsers, state.parsers], p => p.isMatch(url))
 }
 
 function findTemplate(parser) {
@@ -205,9 +233,9 @@ function findTemplate(parser) {
             name = settings.typeTemplates.get(parser.info.type)
         }
         if (name) {
-            return ORIGINAL_LOOK_NAME !== name ? state.templates.get(name) : undefined
+            return ORIGINAL_LOOK_NAME !== name ? getValue([settings.templates, state.templates], name) : undefined
         } else {
-            return findValue(state.templates, t => t.info.type === parser.info.type)
+            return findValue([settings.templates, state.templates], t => t.info.type === parser.info.type)
         }
     }
 }
@@ -460,7 +488,7 @@ function getTestPages() {
 }
 
 function getSettings() {
-    function mapRemote(aMap) {
+    function mapEntity(aMap) {
         const ret = []
         for (const p of aMap.values()) {
             ret.push({name: p.name, link: p.options.link})
@@ -470,9 +498,45 @@ function getSettings() {
     return {
         settings: settings,
         defaultSettings: DEFAULT_SETTINGS,
-        remoteParsers: mapRemote(state.parsers),
-        remoteTemplates: mapRemote(state.templates)
+        remoteParsers: mapEntity(state.parsers),
+        remoteTemplates: mapEntity(state.templates),
+        localParsers: mapEntity(settings.parsers),
+        localTemplates: mapEntity(settings.templates)
     }
+}
+
+async function setLocalEntity(entity) {
+    if (entity.parser) {
+        const parser = createParser({text: entity.parser, link: ''})
+        settings.parsers.set(parser.name, parser)
+    } else if (entity.template) {
+        const template = createTemplate({text: entity.template, link: ''})
+        settings.templates.set(template.name, template)
+    } else {
+        throw new Error('Either parser or template must be set')
+    }
+    await saveSettings()
+}
+
+function getLocalEntity(entity) {
+    const ret = {}
+    if (entity.parser) {
+        const p = settings.parsers.get(entity.parser)
+        ret.text = p ? p.options.text : ''
+    } else if (entity.template) {
+        const t = settings.templates.get(entity.template)
+        ret.text = t ? t.options.text : ''
+    }
+    return ret
+}
+
+async function deleteLocalEntity(entity) {
+    if (entity.parser) {
+        settings.parsers.delete(entity.parser)
+    } else if (entity.template) {
+        settings.templates.delete(entity.template)
+    }
+    await saveSettings()
 }
 
 function onMessage(msg, sender) {
@@ -490,6 +554,15 @@ function onMessage(msg, sender) {
 
     } else if ('set_settings' === msg.type) {
         return setSettings(msg.settings)
+
+    } else if ('set_local_entity' === msg.type) {
+        return setLocalEntity(msg.entity)
+
+    } else if ('get_local_entity' === msg.type) {
+        return promise(getLocalEntity(msg.entity))
+
+    } else if ('delete_local_entity' === msg.type) {
+        return deleteLocalEntity(msg.entity)
 
     } else if ('show_welcome_page' === msg.type) {
         showWelcomePage()

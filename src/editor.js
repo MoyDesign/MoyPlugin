@@ -20,12 +20,26 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/* global saveBut, githubUserInput, refreshBut, resetGithubUserBut, welcomePageBut, remoteParsersCont,
-    remoteTemplatesCont, localParsersCont, localTemplatesCont, $ */
+/* global saveBut, textArea, $ */
 
 'use strict'
 
-const EDITOR_PAGE = '/src/editor.html'
+const PARSER_SEARCH_PREFIX = '?parser='
+const TEMPLATE_SEARCH_PREFIX = '?template='
+
+let isParser = false
+let isTemplate = false
+let parserName
+let templateName
+
+if (location.search.startsWith(PARSER_SEARCH_PREFIX)) {
+    isParser = true
+    parserName = decodeURIComponent(location.search.substr(PARSER_SEARCH_PREFIX.length))
+}
+if (location.search.startsWith(TEMPLATE_SEARCH_PREFIX)) {
+    isTemplate = true
+    templateName = decodeURIComponent(location.search.substr(TEMPLATE_SEARCH_PREFIX.length))
+}
 
 function hideResultDivs() {
     for (const node of document.getElementsByClassName('success')) {
@@ -69,52 +83,51 @@ async function sendMessageOnClick(msg, button, successCaption) {
 }
 
 function onSaveClick() {
-    const newSettings = {
-        githubUser: githubUserInput.value
+    const entity = {}
+    if (isParser) {
+        entity.parser = textArea.value
+    } else if (isTemplate) {
+        entity.template = textArea.value
+    } else {
+        return
     }
-    sendMessageOnClick({type: 'set_settings', settings: newSettings}, saveBut, 'Save')
-        .catch(e => console.log('Failed to save settings', e))
+    sendMessageOnClick({type: 'set_local_entity', entity: entity}, saveBut, 'Save')
+        .catch(e => console.log('Failed to save', e))
 }
 
-function onWelcomePageClick() {
-    browser.runtime.sendMessage({type: 'show_welcome_page'})
-}
-
-function onRefreshClick() {
-    sendMessageOnClick({type: 'refresh_data'}, refreshBut)
-        .catch(e => console.log('Failed to refresh data', e))
+function onDeleteClick() {
+    const entity = {}
+    if (parserName) {
+        entity.parser = parserName
+    } else if (templateName) {
+        entity.template = templateName
+    } else {
+        return
+    }
+    sendMessageOnClick({type: 'delete_local_entity', entity: entity}, saveBut)
+        .catch(e => console.log('Failed to delete', e))
 }
 
 async function load() {
-    const {settings, defaultSettings, remoteParsers, remoteTemplates, localParsers, localTemplates} =
-        await browser.runtime.sendMessage({type: 'get_settings'})
-    githubUserInput.value = settings.githubUser
-    resetGithubUserBut.onclick = () => {
-        githubUserInput.value = defaultSettings.githubUser
-        onSaveClick()
-        return false
+    const entity = {}
+    if (parserName) {
+        entity.parser = parserName
+    } else if (templateName) {
+        entity.template = templateName
+    } else {
+        return
     }
-
-    function fillEntities(container, entities) {
-        $(container).empty()
-        for (const p of entities) {
-            const link = $('<a/>').text(p.name).attr('href', p.link).attr('target', '_blank')
-            $(container).append($('<li/>').append(link))
-        }
+    const {text} = await browser.runtime.sendMessage({type: 'get_local_entity', entity: entity})
+    if (!text) {
+        throw new Error('Not found')
     }
-    fillEntities(remoteParsersCont, remoteParsers)
-    fillEntities(remoteTemplatesCont, remoteTemplates)
-
-    localParsers.forEach(p => p.link = `${EDITOR_PAGE}?parser=${encodeURIComponent(p.name)}`)
-    localParsers.push({name: 'New parser', link: `${EDITOR_PAGE}?parser=`})
-    localTemplates.forEach(t => t.link = `${EDITOR_PAGE}?template=${encodeURIComponent(t.name)}`)
-    localTemplates.push({name: 'New template', link: `${EDITOR_PAGE}?template=`})
-    fillEntities(localParsersCont, localParsers)
-    fillEntities(localTemplatesCont, localTemplates)
+    textArea.value = text
 }
 
-load().catch(e => console.log('Failed to load settings', e))
+load().catch(e => {
+    console.log('Failed to load', e)
+    addResultNode(saveBut, '' + e)
+})
 saveBut.onclick = onSaveClick
-githubUserInput.oninput = dirty
-welcomePageBut.onclick = onWelcomePageClick
-refreshBut.onclick = onRefreshClick
+deleteBut.onclick = onDeleteClick
+textArea.oninput = dirty
