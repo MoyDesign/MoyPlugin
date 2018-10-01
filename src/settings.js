@@ -21,7 +21,7 @@ SOFTWARE.
 */
 
 /* global saveBut, githubUserInput, refreshBut, resetGithubUserBut, welcomePageBut, remoteParsersCont,
-    remoteTemplatesCont, localParsersCont, localTemplatesCont, $ */
+    remoteTemplatesCont, localParsersCont, localTemplatesCont, newParserBut, newTemplateBut, $ */
 
 'use strict'
 
@@ -106,9 +106,7 @@ async function load() {
     fillEntities(remoteTemplatesCont, remoteTemplates)
 
     localParsers.forEach(p => p.link = `${EDITOR_PAGE}?parser=${encodeURIComponent(p.name)}`)
-    localParsers.push({name: 'New parser', link: `${EDITOR_PAGE}?parser=`})
     localTemplates.forEach(t => t.link = `${EDITOR_PAGE}?template=${encodeURIComponent(t.name)}`)
-    localTemplates.push({name: 'New template', link: `${EDITOR_PAGE}?template=`})
     fillEntities(localParsersCont, localParsers)
     fillEntities(localTemplatesCont, localTemplates)
 }
@@ -118,3 +116,5 @@ saveBut.onclick = onSaveClick
 githubUserInput.oninput = dirty
 welcomePageBut.onclick = onWelcomePageClick
 refreshBut.onclick = onRefreshClick
+newParserBut.onclick = () => window.open(`${EDITOR_PAGE}?parser=`, '_blank')
+newTemplateBut.onclick = () => window.open(`${EDITOR_PAGE}?template=`, '_blank')

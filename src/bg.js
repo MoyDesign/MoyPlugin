@@ -46,6 +46,7 @@ const MAIN_CONTENT_SCRIPTS = ['/src/cs.js']
 const POLYFILL_CONTENT_SCRIPT = '/lib/browser-polyfill.min.js'
 const FRAME_INJECTOR_SCRIPT = '/src/frame-injector.js'
 const WELCOME_PAGE = '/src/welcome.html'
+const EDITOR_PAGE = '/src/editor.html'
 
 const REFRESH_INTERVAL = 5 * HOUR
 const CHECK_INTERVAL = 5 * MINUTE
@@ -388,14 +389,20 @@ function promise(ret) {
     return new Promise(resolve => resolve(ret))
 }
 
+function entityLink(name, rawLink) {
+    return rawLink || browser.runtime.getURL(``)
+}
+
 function bindingInfo(binding) {
     if (binding) {
         const {parser, template} = binding
         return {
             parserName: parser.name,
-            parserLink: parser.options.link,
+            parserLink: parser.options.link || 
+                browser.runtime.getURL(`${EDITOR_PAGE}?parser=${encodeURIComponent(parser.name)}`),
             templateName: template.name,
-            templateLink: template.options.link
+            templateLink: template.options.link ||
+                browser.runtime.getURL(`${EDITOR_PAGE}?template=${encodeURIComponent(template.name)}`)
         }
     }
 }

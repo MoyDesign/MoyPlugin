@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/* global saveBut, textArea, $ */
+/* global saveBut, textArea */
 
 'use strict'
 
@@ -131,3 +131,6 @@ load().catch(e => {
 saveBut.onclick = onSaveClick
 deleteBut.onclick = onDeleteClick
 textArea.oninput = dirty
+if (!parserName && !templateName) {
+    deleteBut.style.display = 'none'
+}
