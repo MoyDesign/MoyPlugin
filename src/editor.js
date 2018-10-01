@@ -24,21 +24,136 @@ SOFTWARE.
 
 'use strict'
 
-const PARSER_SEARCH_PREFIX = '?parser='
-const TEMPLATE_SEARCH_PREFIX = '?template='
+const PARSER_HELP = 'https://github.com/MoyDesign/MoyDocs/blob/master/docs/parser.md#parser'
+const TEMPLATE_HELP = 'https://github.com/MoyDesign/MoyDocs/blob/master/docs/template.md#template'
+const GENERAL_HELP = 'https://github.com/MoyDesign/MoyDocs/blob/master/README.md#contents'
 
-let isParser = false
-let isTemplate = false
-let parserName
-let templateName
+const ARTICLE_PARSER_STUB = `info:
+  name: 
+  description: 
+  type: article
+  domain: 
+  path: 
+  testPages: 
 
-if (location.search.startsWith(PARSER_SEARCH_PREFIX)) {
-    isParser = true
-    parserName = decodeURIComponent(location.search.substr(PARSER_SEARCH_PREFIX.length))
-}
-if (location.search.startsWith(TEMPLATE_SEARCH_PREFIX)) {
-    isTemplate = true
-    templateName = decodeURIComponent(location.search.substr(TEMPLATE_SEARCH_PREFIX.length))
+rules: 
+  - name: logo_small_img_src
+    value: 
+
+  - name: author_img_src
+    match: 
+
+  - name: author
+    match: 
+
+  - name: author_link
+    match: 
+
+  - name: date
+    match: 
+
+  - name: title
+    match: 
+
+  - name: body
+    match: 
+
+  - name: comment
+    match: 
+    rules:
+      - name: indent
+        match: 
+
+      - name: author_img_src
+        match: 
+
+      - name: author_link
+        match: 
+
+      - name: author
+        match: 
+
+      - name: date
+        match: 
+
+      - name: body
+        match: 
+`
+
+const FEED_PARSER_STUB = `info:
+  name: 
+  description: 
+  type: feed
+  domain: 
+  path: 
+
+rules:
+  - name: logo_small_img_src
+    match: 
+
+  - name: nav_prev_link
+    match: 
+
+  - name: nav_prev
+    match: 
+
+  - name: nav_next_link
+    match: 
+
+  - name: nav_next
+    match: 
+
+  - name: article
+    match: 
+    rules:
+      - name: author_img_src
+        match: 
+
+      - name: author
+        match: 
+
+      - name: author_link
+        match: 
+
+      - name: title
+        match: 
+
+      - name: title_link
+        match: 
+
+      - name: body
+        match: 
+
+      - name: date
+        match: 
+
+      - name: comments
+        match: 
+
+      - name: comments_link
+        match: 
+
+      - name: new_comment
+        match: 
+
+      - name: new_comment_link
+        match: 
+`
+
+const STUBS = {article: ARTICLE_PARSER_STUB, feed: FEED_PARSER_STUB}
+
+const query = parseQuery(location.search)
+const isParser = query.hasOwnProperty('parser')
+const isTemplate = query.hasOwnProperty('template')
+
+function parseQuery(queryString) {
+    const query = {}
+    const pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&')
+    for (let i = 0; i < pairs.length; i++) {
+        const pair = pairs[i].split('=')
+        query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '')
+    }
+    return query
 }
 
 function hideResultDivs() {
@@ -97,10 +212,10 @@ function onSaveClick() {
 
 function onDeleteClick() {
     const entity = {}
-    if (parserName) {
-        entity.parser = parserName
-    } else if (templateName) {
-        entity.template = templateName
+    if (query.parser) {
+        entity.parser = query.parser
+    } else if (query.template) {
+        entity.template = query.template
     } else {
         return
     }
@@ -108,12 +223,24 @@ function onDeleteClick() {
         .catch(e => console.log('Failed to delete', e))
 }
 
+function onHelpClick() {
+    let url
+    if (isParser) {
+        url = PARSER_HELP
+    } else if (isTemplate) {
+        url = TEMPLATE_HELP
+    } else {
+        url = GENERAL_HELP
+    }
+    window.open(url, '_blank')
+}
+
 async function load() {
     const entity = {}
-    if (parserName) {
-        entity.parser = parserName
-    } else if (templateName) {
-        entity.template = templateName
+    if (query.parser) {
+        entity.parser = query.parser
+    } else if (query.template) {
+        entity.template = query.template
     } else {
         return
     }
@@ -130,7 +257,11 @@ load().catch(e => {
 })
 saveBut.onclick = onSaveClick
 deleteBut.onclick = onDeleteClick
+helpBut.onclick = onHelpClick
 textArea.oninput = dirty
-if (!parserName && !templateName) {
+if (!query.parser && !query.template) {
     deleteBut.style.display = 'none'
+    if (query.stub && STUBS.hasOwnProperty(query.stub)) {
+        textArea.value = STUBS[query.stub]
+    }
 }

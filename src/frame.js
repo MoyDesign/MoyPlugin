@@ -24,6 +24,8 @@ SOFTWARE.
 
 'use strict'
 
+const EDITOR_PAGE = '/src/editor.html'
+
 async function switchLook(name) {
     await browser.runtime.sendMessage({type: 'switch_look', name: name})
 }
@@ -61,6 +63,10 @@ async function load() {
         addLinkButton(settingsBut.parentNode, 'Open template', binding.templateName, binding.templateLink)
     } else {
         addLook(originalLookName, 'active', 'original')
+        addLinkButton(settingsBut.parentNode, 'Create article parser', 'Create article parser',
+            browser.runtime.getURL(`${EDITOR_PAGE}?parser=&stub=article`))
+        addLinkButton(settingsBut.parentNode, 'Create feed parser', 'Create feed parser',
+            browser.runtime.getURL(`${EDITOR_PAGE}?parser=&stub=feed`))
     }
     if (otherLooks) {
         otherLooks.forEach(l => addLook(l))
