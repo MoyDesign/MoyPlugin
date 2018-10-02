@@ -408,7 +408,8 @@ function bindingInfo(binding) {
 }
 
 function otherLooks(type, name) {
-    return Array.from(state.templates.values())
+    return Array.from(settings.templates.values())
+        .concat(Array.from(state.templates.values()))
         .filter(t => t.info.type === type && t.name !== name)
         .map(t => t.name)
 }
@@ -423,7 +424,7 @@ async function switchLook(tab, templateName) {
             throw new Error('Binding not found')
         }
     } else {
-        const template = state.templates.get(templateName)
+        const template = getValue([settings.templates, state.templates], templateName)
         if (template) {
             // we set a custom look for the whole type at once
             settings.typeTemplates.set(template.info.type, templateName)
