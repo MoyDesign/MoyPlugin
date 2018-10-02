@@ -56,7 +56,7 @@ function addLinkButton(parentNode, caption, tooltip, href) {
 
 async function load() {
     const info = await browser.runtime.sendMessage({type: 'info'})
-    const {binding, otherLooks, originalLookName} = info
+    const {binding, otherLooks, originalLookName, url} = info
     if (binding) {
         addLook(binding.templateName, 'active')
         addLinkButton(settingsBut.parentNode, 'Open parser', binding.parserName, binding.parserLink)
@@ -64,9 +64,9 @@ async function load() {
     } else {
         addLook(originalLookName, 'active', 'original')
         addLinkButton(settingsBut.parentNode, 'Create article parser', 'Create article parser',
-            browser.runtime.getURL(`${EDITOR_PAGE}?parser=&stub=article`))
+            browser.runtime.getURL(`${EDITOR_PAGE}?parser=&stub=article&url=${encodeURIComponent(url)}`))
         addLinkButton(settingsBut.parentNode, 'Create feed parser', 'Create feed parser',
-            browser.runtime.getURL(`${EDITOR_PAGE}?parser=&stub=feed`))
+            browser.runtime.getURL(`${EDITOR_PAGE}?parser=&stub=feed&url=${encodeURIComponent(url)}`))
     }
     if (otherLooks) {
         otherLooks.forEach(l => addLook(l))

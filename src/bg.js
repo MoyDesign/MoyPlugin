@@ -454,7 +454,8 @@ function getTabInfo(tab) {
     return {
         binding: bindingInfo(binding),
         otherLooks: looks,
-        originalLookName: ORIGINAL_LOOK_NAME
+        originalLookName: ORIGINAL_LOOK_NAME,
+        url: tab.url
     }
 }
 

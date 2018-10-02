@@ -29,34 +29,48 @@ const TEMPLATE_HELP = 'https://github.com/MoyDesign/MoyDocs/blob/master/docs/tem
 const GENERAL_HELP = 'https://github.com/MoyDesign/MoyDocs/blob/master/README.md#contents'
 
 const ARTICLE_PARSER_STUB = `info:
-  name: 
-  description: 
+  name: %DOMAIN_CAPITALIZED% article
+  description: Parses a single %DOMAIN_CAPITALIZED% article.
   type: article
-  domain: 
-  path: 
-  testPages: 
+  domain: %DOMAIN%
+  path: ([^/]+/)+.+
+  testPages:
+    - "%URL%"
 
 rules: 
   - name: logo_small_img_src
-    value: 
+    value: "%FAVICON%"
 
   - name: author_img_src
-    match: 
+    match:
+      include: 
+      attribute: src
 
   - name: author
     match: 
 
   - name: author_link
-    match: 
+    match:
+      include: 
+      attribute: href
 
   - name: date
     match: 
 
   - name: title
+    match:
+      include: "meta[property='og:title']"
+      attribute: content
+
+  - name: article_img_src
     match: 
+      include: "meta[property='og:image']"
+      attribute: content
 
   - name: body
-    match: 
+    match:
+      include: 
+      keepBasicMarkup: true
 
   - name: comment
     match: 
@@ -77,7 +91,9 @@ rules:
         match: 
 
       - name: body
-        match: 
+        match:
+          include: 
+          keepBasicMarkup: true
 `
 
 const FEED_PARSER_STUB = `info:
@@ -251,6 +267,13 @@ async function load() {
     textArea.value = text
 }
 
+function replaceAll(str, replaceFrom, replaceTo) {
+    while (str.includes(replaceFrom)) {
+        str = str.replace(replaceFrom, replaceTo)
+    }
+    return str
+}
+
 load().catch(e => {
     console.log('Failed to load', e)
     addResultNode(saveBut, '' + e)
@@ -262,6 +285,19 @@ textArea.oninput = dirty
 if (!query.parser && !query.template) {
     deleteBut.style.display = 'none'
     if (query.stub && STUBS.hasOwnProperty(query.stub)) {
-        textArea.value = STUBS[query.stub]
+        let text = STUBS[query.stub]
+        if (query.url) {
+            const url = new URL(query.url)
+            let domain = url.hostname
+            if (domain.startsWith('www.')) {
+                domain = domain.substr(4)
+            }
+            text = replaceAll(text, '%DOMAIN_CAPITALIZED%', domain.replace(/^\w/, c => c.toUpperCase()))
+            text = replaceAll(text, '%DOMAIN%', domain)
+            text = replaceAll(text, '%PATH%', url.pathname)
+            text = replaceAll(text, '%URL%', url)
+            text = replaceAll(text, '%FAVICON%', `${url.origin}/favicon.ico`)
+        }
+        textArea.value = text
     }
 }
