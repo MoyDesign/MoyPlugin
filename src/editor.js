@@ -97,24 +97,30 @@ rules:
 `
 
 const FEED_PARSER_STUB = `info:
-  name: 
-  description: 
+  name: %DOMAIN_CAPITALIZED% feed
+  description: Parses %DOMAIN_CAPITALIZED% pages with multiple articles.
   type: feed
-  domain: 
-  path: 
+  domain: %DOMAIN%
+  path: ([^/]+/)+.+
+  testPages:
+    - "%URL%"
 
 rules:
   - name: logo_small_img_src
-    match: 
+    value: "%FAVICON%"
 
   - name: nav_prev_link
-    match: 
+    match:
+      include: 
+      attribute: href
 
   - name: nav_prev
     match: 
 
   - name: nav_next_link
-    match: 
+    match:
+      include: 
+      attribute: href
 
   - name: nav_next
     match: 
@@ -123,22 +129,30 @@ rules:
     match: 
     rules:
       - name: author_img_src
-        match: 
+        match:
+          include: 
+          attribute: src
 
       - name: author
         match: 
 
       - name: author_link
-        match: 
+        match:
+          include: 
+          attribute: href
 
       - name: title
         match: 
 
       - name: title_link
         match: 
+          include: 
+          attribute: href
 
       - name: body
         match: 
+          include: 
+          keepBasicMarkup: true
 
       - name: date
         match: 
@@ -147,13 +161,17 @@ rules:
         match: 
 
       - name: comments_link
-        match: 
+        match:
+          include: 
+          attribute: href
 
       - name: new_comment
         match: 
 
       - name: new_comment_link
-        match: 
+        match:
+          include: 
+          attribute: href
 `
 
 const STUBS = {article: ARTICLE_PARSER_STUB, feed: FEED_PARSER_STUB}
