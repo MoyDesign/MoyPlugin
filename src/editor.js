@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/* global saveBut, textArea */
+/* global saveBut, textArea, deleteBut, helpBut */
 
 'use strict'
 

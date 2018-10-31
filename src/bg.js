@@ -96,19 +96,19 @@ async function saveSettings() {
 }
 
 async function loadSettings() {
+    function mapTextArray(arr, mapperFunc) {
+        return new Map((arr || []).map(text => {
+            try {
+                const p = mapperFunc({text: text, link: ''})
+                return [p.name, p]
+            } catch (e) {
+                console.log('Settings loading failure', e)
+                return undefined
+            }
+        }).filter(Boolean))
+    }
     const tmp = await browser.storage.local.get()
     if (tmp) {
-        function mapTextArray(arr, mapperFunc) {
-            return new Map((arr || []).map(text => {
-                try {
-                    const p = mapperFunc({text: text, link: ''})
-                    return [p.name, p]
-                } catch (e) {
-                    console.log('Settings loading failure', e)
-                    return undefined
-                }
-            }).filter(Boolean))
-        }
         settings.parsers = mapTextArray(tmp.parsers, createParser)
         settings.templates = mapTextArray(tmp.templates, createTemplate)
         settings.typeTemplates = new Map(tmp.typeTemplates || [])
@@ -387,10 +387,6 @@ function onIconClicked(tab) {
 
 function promise(ret) {
     return new Promise(resolve => resolve(ret))
-}
-
-function entityLink(name, rawLink) {
-    return rawLink || browser.runtime.getURL(``)
 }
 
 function bindingInfo(binding) {
