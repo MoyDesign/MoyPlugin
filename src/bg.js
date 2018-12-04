@@ -58,6 +58,8 @@ const DEFAULT_SETTINGS = {
 let settings = {
     parsers: new Map(),
     templates: new Map(),
+    remoteParsers: new Map(),
+    remoteTemplates: new Map(),
     typeTemplates: new Map(),
     parserTemplates: new Map(),
     githubUser: DEFAULT_SETTINGS.githubUser,
@@ -85,21 +87,27 @@ function createTemplate(options) {
 }
 
 async function saveSettings() {
-    await browser.storage.local.set({
-        parsers: Array.from(settings.parsers.values).map(p => p.options.text),
-        templates: Array.from(settings.templates.values).map(t => t.options.text),
+    function mapToTextArray(m) {
+        return Array.from(m.values()).map(p => ({text: p.options.text, link: p.options.link || ''}))
+    }
+    const newSettings = {
+        parsers: mapToTextArray(settings.parsers),
+        templates: mapToTextArray(settings.templates),
+        remoteParsers: mapToTextArray(state.parsers),
+        remoteTemplates: mapToTextArray(state.templates),
         typeTemplates: [...settings.typeTemplates],
         parserTemplates: [...settings.parserTemplates],
         githubUser: settings.githubUser || DEFAULT_SETTINGS.githubUser,
         welcomePageShown: settings.welcomePageShown || false
-    })
+    }
+    await browser.storage.local.set(newSettings)
 }
 
 async function loadSettings() {
     function mapTextArray(arr, mapperFunc) {
-        return new Map((arr || []).map(text => {
+        return new Map((arr || []).map(obj => {
             try {
-                const p = mapperFunc({text: text, link: ''})
+                const p = mapperFunc(obj)
                 return [p.name, p]
             } catch (e) {
                 console.log('Settings loading failure', e)
@@ -111,6 +119,12 @@ async function loadSettings() {
     if (tmp) {
         settings.parsers = mapTextArray(tmp.parsers, createParser)
         settings.templates = mapTextArray(tmp.templates, createTemplate)
+        if (0 == state.parsers.size) {
+            state.parsers = mapTextArray(tmp.remoteParsers, createParser)
+        }
+        if (0 == state.templates.size) {
+            state.templates = mapTextArray(tmp.remoteTemplates, createTemplate)
+        }
         settings.typeTemplates = new Map(tmp.typeTemplates || [])
         settings.parserTemplates = new Map(tmp.parserTemplates || [])
         settings.githubUser = tmp.githubUser || DEFAULT_SETTINGS.githubUser,
@@ -183,7 +197,9 @@ async function refreshData() {
             .finally(() => {
                 state.lastRefresh = Date.now()
                 state.refreshDataPromise = null
-                if (!settings.welcomePageShown) {
+                if (settings.welcomePageShown) {
+                    saveSettings()
+                } else {
                     showWelcomePage()
                 }
             })
