@@ -77,13 +77,13 @@ let state = {
 }
 
 function createParser(options) {
-    const {text, link} = options
-    return new MoyParser({content: jsyaml.safeLoad(text), text: text, link: link})
+    const {text, link, local} = options
+    return new MoyParser({content: jsyaml.safeLoad(text), text: text, link: link, local: !!local})
 }
 
 function createTemplate(options) {
-    const {text, link} = options
-    return new MoyTemplate({content: text, parseYaml: jsyaml.safeLoad, text: text, link: link})
+    const {text, link, local} = options
+    return new MoyTemplate({content: text, parseYaml: jsyaml.safeLoad, text: text, link: link, local: !!local})
 }
 
 async function saveSettings() {
@@ -405,16 +405,22 @@ function promise(ret) {
     return new Promise(resolve => resolve(ret))
 }
 
+function entityLink(entityType, entity) {
+    let ret = browser.runtime.getURL(`${EDITOR_PAGE}?${entityType}=${encodeURIComponent(entity.name)}`)
+    if (entity.options.local) {
+        ret += `&local`
+    }
+    return ret
+}
+
 function bindingInfo(binding) {
     if (binding) {
         const {parser, template} = binding
         return {
             parserName: parser.name,
-            parserLink: parser.options.link || 
-                browser.runtime.getURL(`${EDITOR_PAGE}?parser=${encodeURIComponent(parser.name)}`),
+            parserLink: entityLink('parser', parser),
             templateName: template.name,
-            templateLink: template.options.link ||
-                browser.runtime.getURL(`${EDITOR_PAGE}?template=${encodeURIComponent(template.name)}`)
+            templateLink: entityLink('template', template)
         }
     }
 }
@@ -528,10 +534,10 @@ function getSettings() {
 
 async function setLocalEntity(entity) {
     if (entity.parser) {
-        const parser = createParser({text: entity.parser, link: ''})
+        const parser = createParser({text: entity.parser, link: entity.link || '', local: true})
         settings.parsers.set(parser.name, parser)
     } else if (entity.template) {
-        const template = createTemplate({text: entity.template, link: ''})
+        const template = createTemplate({text: entity.template, link: entity.link || '', local: true})
         settings.templates.set(template.name, template)
     } else {
         throw new Error('Either parser or template must be set')
@@ -539,16 +545,16 @@ async function setLocalEntity(entity) {
     await saveSettings()
 }
 
-function getLocalEntity(entity) {
-    const ret = {}
-    if (entity.parser) {
-        const p = settings.parsers.get(entity.parser)
-        ret.text = p ? p.options.text : ''
-    } else if (entity.template) {
-        const t = settings.templates.get(entity.template)
-        ret.text = t ? t.options.text : ''
+function getEntity(entity) {
+    function stripEntity(e) {
+        return {text: e ? e.options.text : '', link: e ? e.options.link : ''}
     }
-    return ret
+    const store = entity.local ? settings : state
+    if (entity.parser) {
+        return stripEntity(store.parsers.get(entity.parser))
+    } else if (entity.template) {
+        return stripEntity(store.templates.get(entity.template))
+    }
 }
 
 async function deleteLocalEntity(entity) {
@@ -579,8 +585,8 @@ function onMessage(msg, sender) {
     } else if ('set_local_entity' === msg.type) {
         return setLocalEntity(msg.entity)
 
-    } else if ('get_local_entity' === msg.type) {
-        return promise(getLocalEntity(msg.entity))
+    } else if ('get_entity' === msg.type) {
+        return promise(getEntity(msg.entity))
 
     } else if ('delete_local_entity' === msg.type) {
         return deleteLocalEntity(msg.entity)

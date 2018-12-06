@@ -105,8 +105,8 @@ async function load() {
     fillEntities(remoteParsersCont, remoteParsers)
     fillEntities(remoteTemplatesCont, remoteTemplates)
 
-    localParsers.forEach(p => p.link = `${EDITOR_PAGE}?parser=${encodeURIComponent(p.name)}`)
-    localTemplates.forEach(t => t.link = `${EDITOR_PAGE}?template=${encodeURIComponent(t.name)}`)
+    localParsers.forEach(p => p.link = `${EDITOR_PAGE}?parser=${encodeURIComponent(p.name)}&local`)
+    localTemplates.forEach(t => t.link = `${EDITOR_PAGE}?template=${encodeURIComponent(t.name)}&local`)
     fillEntities(localParsersCont, localParsers)
     fillEntities(localTemplatesCont, localTemplates)
 }

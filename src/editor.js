@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/* global saveBut, textArea, deleteBut, helpBut */
+/* global saveBut, textArea, deleteBut, helpBut, remoteLinkBut */
 
 'use strict'
 
@@ -179,6 +179,8 @@ const STUBS = {article: ARTICLE_PARSER_STUB, feed: FEED_PARSER_STUB}
 const query = parseQuery(location.search)
 const isParser = query.hasOwnProperty('parser')
 const isTemplate = query.hasOwnProperty('template')
+const isLocal = query.hasOwnProperty('local')
+let remoteLink = ''
 
 function parseQuery(queryString) {
     const query = {}
@@ -208,7 +210,9 @@ function addResultNode(parentNode, errorMsg) {
 
 function dirty() {
     hideResultDivs()
-    saveBut.innerText = 'Save*'
+    if (!saveBut.innerText.endsWith('*')) {
+        saveBut.innerText += '*'
+    }
 }
 
 async function sendMessageOnClick(msg, button, successCaption) {
@@ -232,7 +236,7 @@ async function sendMessageOnClick(msg, button, successCaption) {
 }
 
 function onSaveClick() {
-    const entity = {}
+    const entity = {link: remoteLink}
     if (isParser) {
         entity.parser = textArea.value
     } else if (isTemplate) {
@@ -240,7 +244,7 @@ function onSaveClick() {
     } else {
         return
     }
-    sendMessageOnClick({type: 'set_local_entity', entity: entity}, saveBut, 'Save')
+    sendMessageOnClick({type: 'set_local_entity', entity: entity}, saveBut, 'Save locally')
         .catch(e => console.log('Failed to save', e))
 }
 
@@ -270,7 +274,7 @@ function onHelpClick() {
 }
 
 async function load() {
-    const entity = {}
+    const entity = {local: isLocal}
     if (query.parser) {
         entity.parser = query.parser
     } else if (query.template) {
@@ -278,11 +282,16 @@ async function load() {
     } else {
         return
     }
-    const {text} = await browser.runtime.sendMessage({type: 'get_local_entity', entity: entity})
+    const {text, link} = await browser.runtime.sendMessage({type: 'get_entity', entity: entity})
     if (!text) {
         throw new Error('Not found')
     }
     textArea.value = text
+    if (link) {
+        remoteLink = link
+        remoteLinkBut.style.display = 'block'
+        remoteLinkBut.onclick = () => window.open(link, '_blank')
+    }
 }
 
 function replaceAll(str, replaceFrom, replaceTo) {
