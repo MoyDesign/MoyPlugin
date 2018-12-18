@@ -165,13 +165,19 @@ async function fetchTemplate(githubFileInfo) {
     return createTemplate(await fetchFile(githubFileInfo))
 }
 
+async function allPossible(promises) {
+    return Promise.all(promises.map(p => p.catch(e => e)))
+}
+
 async function fetchMap(dirname, fileFetcher, entityFilter) {
     const dir = await fetchDir(dirname)
-    let entities = await Promise.all(dir.map(fileFetcher))
+    let entities = await allPossible(dir.map(fileFetcher))
+    let ok = entities.filter(e => !(e instanceof Error))
+    let err = entities.filter(e => e instanceof Error)
     if (entityFilter) {
-        entities = entities.filter(entityFilter)
+        ok = ok.filter(entityFilter)
     }
-    return new Map(entities.map(e => [e.name, e]))
+    return {ok: new Map(ok.map(e => [e.name, e])), error: err}
 }
 
 function templateFilter(template) {
@@ -185,12 +191,17 @@ async function refreshData() {
                 fetchMap(TEMPLATES_DIR, fetchTemplate, templateFilter)
             ])
             .then(res => {
-                state.parsers = res[0]
-                state.templates = res[1]
-                state.lastRefreshError = null
+                state.parsers = res[0].ok
+                state.templates = res[1].ok
+                if (res[0].error.length > 0 || res[1].error.length > 0) {
+                    throw new Error(res[0].error.map(e => e.message).join('\n') + '\n' + 
+                        res[1].error.map(e => e.message).join('\n'))
+                } else {
+                    state.lastRefreshError = null
+                }
             })
             .catch(e => {
-                console.log('Failed to refresh data', e)
+                console.log('Error while refreshing data', e)
                 state.lastRefreshError = e
                 throw e
             })

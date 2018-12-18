@@ -325,6 +325,12 @@ function checkAndUnifyInfo(info) {
         info.suggestedRegex = getSuggestedRegex(domain, path)
     }
     info.testPages = prepareArrayOfStrings(testPages, 'Parser testPages must be a string or array of strings')
+    const matcher = new RegExp(info.suggestedRegex)
+    info.testPages.forEach(url => {
+        if (!matcher.test(url)) {
+            throw new Error(`Test page doesn't match for parser '${name}': ${url}`)
+        }
+    })
     info.author = checkAndUnifyAuthor(author)
     if (description) {
         ensureString(description, 'Parser description must be a string')
