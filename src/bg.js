@@ -62,6 +62,7 @@ let settings = {
     remoteTemplates: new Map(),
     typeTemplates: new Map(),
     parserTemplates: new Map(),
+    templateZoom: new Map(),
     githubUser: DEFAULT_SETTINGS.githubUser,
     welcomePageShown: false
 }
@@ -97,6 +98,7 @@ async function saveSettings() {
         remoteTemplates: mapToTextArray(state.templates),
         typeTemplates: [...settings.typeTemplates],
         parserTemplates: [...settings.parserTemplates],
+        templateZoom: [...settings.templateZoom],
         githubUser: settings.githubUser || DEFAULT_SETTINGS.githubUser,
         welcomePageShown: settings.welcomePageShown || false
     }
@@ -127,6 +129,7 @@ async function loadSettings() {
         }
         settings.typeTemplates = new Map(tmp.typeTemplates || [])
         settings.parserTemplates = new Map(tmp.parserTemplates || [])
+        settings.templateZoom = new Map(tmp.templateZoom || [])
         settings.githubUser = tmp.githubUser || DEFAULT_SETTINGS.githubUser,
         settings.welcomePageShown = tmp.welcomePageShown || false
     }
@@ -349,6 +352,11 @@ function onDOMContentLoaded(details) {
     if (-1 != tabId && 0 == frameId && url) {
         const binding = state.tabBindings.get(tabId)
         if (binding) {
+            const templateZoom = settings.templateZoom.get(binding.template.name)
+            if (templateZoom) {
+                browser.tabs.setZoom(tabId, templateZoom.zoomFactor)
+                    .catch(e => console.log('Failed to zoom', e))
+            }
             executeRenderingScripts(tabId, binding)
                     .catch(e => console.log('Failed to execute rendering content scripts', e))
         }
@@ -379,6 +387,15 @@ function onTabReplaced(addedTabId, removedTabId) {
         state.tabBindings.set(addedTabId, removedTabBanOptions)
     }
     onTabRemoved(removedTabId)
+}
+
+function onZoomChange(zoomChangeInfo) {
+    const {tabId, newZoomFactor} = zoomChangeInfo
+    const binding = state.tabBindings.get(tabId)
+    if (binding) {
+        settings.templateZoom.set(binding.template.name, {zoomFactor: newZoomFactor})
+        saveSettings()
+    }
 }
 
 async function initTabs() {
@@ -628,5 +645,6 @@ browser.runtime.onMessage.addListener(onMessage)
 
 browser.tabs.onRemoved.addListener(onTabRemoved)
 browser.tabs.onReplaced.addListener(onTabReplaced)
+browser.tabs.onZoomChange.addListener(onZoomChange)
 
 initTabs().catch(e => console.log('Failed to init tabs', e))

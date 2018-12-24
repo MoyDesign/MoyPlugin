@@ -328,7 +328,7 @@ function checkAndUnifyInfo(info) {
     const matcher = new RegExp(info.suggestedRegex)
     info.testPages.forEach(url => {
         if (!matcher.test(url)) {
-            throw new Error(`Test page doesn't match for parser '${name}': ${url}`)
+            throw new Error(`Test page doesn't match for parser '${name}': ${url}. RegExp: ${matcher}`)
         }
     })
     info.author = checkAndUnifyAuthor(author)
