@@ -142,11 +142,14 @@ function ensureArray(v, msg) {
     }
 }
 
-function removeStyles(jQuery, rawEl) {
+function removeStyles(jQuery, rawEl, allowStylesSelector) {
     const el = jQuery(rawEl)
+    if (allowStylesSelector && el.is(allowStylesSelector)) {
+        return el
+    }
     STYLING_ATTRIBUTES.forEach(name => el.removeAttr(name))
     el.children().each(function() {
-        removeStyles(jQuery, this)
+        removeStyles(jQuery, this, allowStylesSelector)
     })
     return el
 }
@@ -349,7 +352,7 @@ function checkParserDoc(parserDoc) {
     }
 }
 
-function parseWithMatchBlock(jQuery, contextElem, matchBlock, hasSubRules) {
+function parseWithMatchBlock(jQuery, contextElem, matchBlock, hasSubRules, options) {
     var nodes = jQuery(matchBlock.include, contextElem)
     if ('' != matchBlock.exclude) {
         nodes = nodes.not(matchBlock.exclude)
@@ -374,7 +377,7 @@ function parseWithMatchBlock(jQuery, contextElem, matchBlock, hasSubRules) {
         if (attribute) {
             return jQuery(this).attr(attribute)
         } else if (keepBasicMarkup) {
-            var ret = removeStyles(jQuery, this)
+            var ret = removeStyles(jQuery, this, options.allowStylesSelector)
             return outerNode ? ret[0].outerHTML : ret.html()
         } else {
             return jQuery(this).text()
@@ -386,7 +389,7 @@ function stripHtml(jQuery, str) {
     return jQuery('<div/>').html(str).text()
 }
 
-function parseWithRule(jQuery, contextElem, rule) {
+function parseWithRule(jQuery, contextElem, rule, options) {
     const hasSubRules = rule.rules
     const match = rule.match
     const attribute = rule.attribute
@@ -401,16 +404,16 @@ function parseWithRule(jQuery, contextElem, rule) {
         // match block
         if (match.or) {
             match.or.find(function(matchBlock) {
-                ret = parseWithMatchBlock(jQuery, contextElem, matchBlock, hasSubRules)
+                ret = parseWithMatchBlock(jQuery, contextElem, matchBlock, hasSubRules, options)
                 return ret.length != 0
             })
         } else {
-            ret = parseWithMatchBlock(jQuery, contextElem, match, hasSubRules)
+            ret = parseWithMatchBlock(jQuery, contextElem, match, hasSubRules, options)
         }
         if (rule.rules) {
             ret = ret.map(function(elem) {
                 var mapped = {}
-                var children = parseWithRules(jQuery, elem, rule.rules).content
+                var children = parseWithRules(jQuery, elem, rule.rules, options).content
                 children.forEach(function(cv, ck) {
                     mapped[ck] = cv
                 })
@@ -434,10 +437,10 @@ function parseWithRule(jQuery, contextElem, rule) {
     return ret
 }
 
-function parseWithRules(jQuery, contextElem, rules) {
+function parseWithRules(jQuery, contextElem, rules, options) {
     var ret = new Map()
     rules.forEach(function(rule) {
-        ret.set(rule.name, parseWithRule(jQuery, contextElem, rule))
+        ret.set(rule.name, parseWithRule(jQuery, contextElem, rule, options))
     })
     return {content: ret}
 }
@@ -497,12 +500,12 @@ MoyParser.prototype.isMatch = function(url) {
 MoyParser.prototype.parse = function(cb) {
     if (cb) {
         try {
-            cb(undefined, parseWithRules(this.jQuery, this.document, this.rules))
+            cb(undefined, parseWithRules(this.jQuery, this.document, this.rules, this.options))
         } catch (e) {
             cb(e)
         }
     } else {
-        return parseWithRules(this.jQuery, this.document, this.rules)
+        return parseWithRules(this.jQuery, this.document, this.rules, this.options)
     }
 }
 

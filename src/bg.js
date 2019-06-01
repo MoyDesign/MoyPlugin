@@ -37,9 +37,12 @@ const PARSERS_DIR = 'MoyParsers'
 const TEMPLATES_DIR = 'MoyTemplates'
 const MEDIA_DOMAINS = ['youtube.com', 'youtu.be', 'ytimg.com', 'googlevideo.com', 'vimeo.com', 'vimeocdn.com', 
     'lj-toys.com', '9cache.com']
+const POST_RENDER_MEDIA_DOMAINS = MEDIA_DOMAINS.concat(['instagram.com'])
 const ORIGINAL_LOOK_NAME = 'Original look'
 const PAGE_ACTION_URL_PROTOCOLS = ['http:', 'https:']
 const PAGE_ACTION_BANNED_URLS = ['https://addons.mozilla.org', 'https://chrome.google.com/webstore']
+const INSTAGRAM_EMBED_JS = 'https://www.instagram.com/embed.js'
+const INSTAGRAM_SELECTOR = 'blockquote.instagram-media'
 
 const AUX_CONTENT_SCRIPTS = ['/lib/handlebars.min.js', '/lib/jquery.slim.min.js', '/src/moyparser.js']
 const MAIN_CONTENT_SCRIPTS = ['/src/cs.js']
@@ -79,7 +82,13 @@ let state = {
 
 function createParser(options) {
     const {text, link, local} = options
-    return new MoyParser({content: jsyaml.safeLoad(text), text: text, link: link, local: !!local})
+    return new MoyParser({
+        content: jsyaml.safeLoad(text),
+        text: text,
+        link: link,
+        local: !!local,
+        allowStylesSelector: INSTAGRAM_SELECTOR
+    })
 }
 
 function createTemplate(options) {
@@ -283,10 +292,11 @@ function registerTabBinding(tabId, url) {
     }
 }
 
-function isMedia(url) {
+function isMedia(url, binding) {
     if (url) {
         const hostname = new URL(url).hostname
-        return MEDIA_DOMAINS.find(d => hostname.endsWith(d))
+        const domains = binding && binding.renderingFinished ? POST_RENDER_MEDIA_DOMAINS : MEDIA_DOMAINS
+        return domains.find(d => hostname.endsWith(d))
     }
 }
 
@@ -325,9 +335,15 @@ async function executeRenderingScripts(tabId, binding) {
             'const compiledTemplateSpec = eval(' + binding.template.precompiled + ')\n' +
             'const parserOptions = JSON.parse(' + quotedString(JSON.stringify(binding.parser.options)) + ')\n'
     })
+    await browser.tabs.executeScript(tabId, {file: POLYFILL_CONTENT_SCRIPT})
     for (const script of MAIN_CONTENT_SCRIPTS) {
         await browser.tabs.executeScript(tabId, {file: script})
     }
+}
+
+async function executeInstagramEmbedScript(tabId) {
+    const {text} = await fetchFile({download_url: INSTAGRAM_EMBED_JS})
+    await browser.tabs.executeScript(tabId, {code: text})
 }
 
 function onBeforeRequest(request) {
@@ -341,7 +357,10 @@ function onBeforeRequest(request) {
                     return {redirectUrl: redirectUrl}
                 }
             }
-        } else if ('image' !== type && 'imageset' !== type && state.tabBindings.has(tabId) && !isMedia(url)) {
+            return
+        }
+        const binding = state.tabBindings.get(tabId)
+        if ('image' !== type && 'imageset' !== type && binding && !isMedia(url, binding)) {
             return createCancelResponse(type)
         }
     }
@@ -594,6 +613,17 @@ async function deleteLocalEntity(entity) {
     await saveSettings()
 }
 
+function finishRendering(tabId, options) {
+    const binding = state.tabBindings.get(tabId)
+    if (binding) {
+        binding.renderingFinished = true
+        if (options.executeInstagram) {
+            return executeInstagramEmbedScript(tabId)
+        }
+    }
+    return promise({})
+}
+
 function onMessage(msg, sender) {
     if ('info' === msg.type) {
         return promise(getTabInfo(sender.tab))
@@ -628,6 +658,9 @@ function onMessage(msg, sender) {
 
     } else if ('refresh_data' === msg.type) {
         return refreshData()
+
+    } else if ('finish_rendering' === msg.type) {
+        return finishRendering(sender.tab.id, msg)
     }
 }
 

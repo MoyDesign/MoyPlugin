@@ -53,6 +53,18 @@ SOFTWARE.
             }
         } catch (e) {
             console.log('Failed to scroll to hash', e)
+        }
+    }
+
+    function finishRendering() {
+        try {
+            scrollToHash()
+            browser.runtime.sendMessage({
+                type: 'finish_rendering',
+                executeInstagram: !!document.querySelector('blockquote.instagram-media')
+            }).catch(e => console.log('Failed to execute instagram rendering', e))
+        } catch (e) {
+            console.log('Failed to finish rendering', e)
         } finally {
             if (observer) {
                 observer.disconnect()
@@ -65,7 +77,7 @@ SOFTWARE.
         try {
             const newDoc = new DOMParser().parseFromString(pageHtml, 'text/html')
             const newNode = document.importNode(newDoc.documentElement, true)
-            observer = new MutationObserver(scrollToHash)
+            observer = new MutationObserver(finishRendering)
             observer.observe(document, {childList: true})
             document.replaceChild(newNode, document.documentElement)
         } catch (e) {
