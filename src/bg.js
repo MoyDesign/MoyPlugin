@@ -473,10 +473,12 @@ function bindingInfo(binding) {
 }
 
 function otherLooks(type, name) {
-    return Array.from(settings.templates.values())
+    const names = Array.from(settings.templates.values())
         .concat(Array.from(state.templates.values()))
         .filter(t => t.info.type === type && t.name !== name)
         .map(t => t.name)
+    // there may be duplicates because of local copies of templates. Remove them
+    return [...new Set(names)]
 }
 
 async function switchLook(tab, templateName) {
