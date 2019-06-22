@@ -32,7 +32,7 @@ https://github.com/lodash/lodash/blob/master/LICENSE
 const REGEXP_CHAR = /[\\^$.*+?()[\]{}|]/g
 const HAS_REGEXP_CHAR = new RegExp(REGEXP_CHAR.source)
 
-const STYLING_ATTRIBUTES = ['align', 'bgcolor', 'border', 'class', 'color', 'dir', 'height', 'style', 'width']
+const STYLING_ATTRIBUTES = ['align', 'bgcolor', 'border', 'class', 'color', 'dir', 'height', 'style', 'width', 'face', 'size']
 
 const BASIC_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'blockquote', 'br', 'i', 'em', 'b', 'strong', 
     'ul', 'ol', 'li', 'dl', 'dt', 'dd', 'hr', 'code', 'del', 'pre', 's', 'u', 'small', 'sub', 'sup', 'img', 
