@@ -9,7 +9,7 @@
 
   "name": "Moy.Design",
   "description": "Makes web pages lightweight, more readable and more user-friendly.",
-  "version": "2.2.1",
+  "version": "2.2.2",
 
   "icons": {
     "128": "res/icon.png"
