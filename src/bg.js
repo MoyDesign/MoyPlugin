@@ -34,7 +34,7 @@ const MINUTE = 60 * SECOND
 const HOUR = 60 * MINUTE
 
 const PARSERS_DIR = 'MoyParsers'
-const TEMPLATES_DIR = 'MoyTemplates'
+const TEMPLATES_DIR = 'MustacheTemplates'
 const MEDIA_DOMAINS = ['youtube.com', 'youtu.be', 'ytimg.com', 'googlevideo.com', 'vimeo.com', 'vimeocdn.com', 
     'lj-toys.com', '9cache.com']
 const POST_RENDER_MEDIA_DOMAINS = MEDIA_DOMAINS.concat(['instagram.com'])
@@ -44,7 +44,7 @@ const PAGE_ACTION_BANNED_URLS = ['https://addons.mozilla.org', 'https://chrome.g
 const INSTAGRAM_EMBED_JS = 'https://www.instagram.com/embed.js'
 const INSTAGRAM_SELECTOR = 'blockquote.instagram-media'
 
-const AUX_CONTENT_SCRIPTS = ['/lib/handlebars.min.js', '/lib/jquery.slim.min.js', '/src/moyparser.js']
+const AUX_CONTENT_SCRIPTS = ['/lib/mustache.js', '/lib/jquery.slim.min.js', '/src/moyparser.js']
 const MAIN_CONTENT_SCRIPTS = ['/src/cs.js']
 const POLYFILL_CONTENT_SCRIPT = '/lib/browser-polyfill.min.js'
 const FRAME_INJECTOR_SCRIPT = '/src/frame-injector.js'
@@ -332,7 +332,7 @@ async function executeRenderingScripts(tabId, binding) {
         file => browser.tabs.executeScript(tabId, {file: file})))
     await browser.tabs.executeScript(tabId, {
         code: 
-            'const compiledTemplateSpec = eval(' + binding.template.precompiled + ')\n' +
+            'const templateText = ' + quotedString(binding.template.text) + '\n' +
             'const parserOptions = JSON.parse(' + quotedString(JSON.stringify(binding.parser.options)) + ')\n'
     })
     await browser.tabs.executeScript(tabId, {file: POLYFILL_CONTENT_SCRIPT})

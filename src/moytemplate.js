@@ -87,17 +87,12 @@ function parseTemplateInfo(templateDoc, parseYaml) {
     return checkAndUnifyTemplateInfo(parseYaml(infoText))
 }
 
-function precompile(H, text) {
-    return H.precompile(text, {knownHelpers:{'join':true}, knownHelpersOnly:true})
-}
-
 function MoyTemplate(options) {
     const {content: templateDoc, parseYaml} = options
     this.options = options
     this.info = parseTemplateInfo(templateDoc, parseYaml)
     this.name = this.info.name
-    this.Handlebars = options.Handlebars || Handlebars
-    this.precompiled = precompile(this.Handlebars, templateDoc)
+    this.text = templateDoc
 }
 
 MoyTemplate.create = function(options, cb) {

@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/* global MoyParser, parserOptions, Handlebars, compiledTemplateSpec */
+/* global MoyParser, parserOptions, templateText */
 
 'use strict'
 
@@ -116,8 +116,8 @@ SOFTWARE.
             for (const [name, value] of parsedData.content) {
                 tokens[name] = polishToken(value)
             }
-            // compiledTemplateSpec is injected by the background script
-            setTimeout(renderPage, 50, Handlebars.template(compiledTemplateSpec)(tokens))
+            // templateText is injected by the background script
+            setTimeout(renderPage, 50, Mustache.render(templateText, tokens))
         }
     }
 
